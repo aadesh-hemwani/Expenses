@@ -56,46 +56,53 @@ struct AddExpenseView: View {
                             .padding(.bottom, 4)
                         
                         HStack(spacing: 2) {
-                            Text("₹")
-                                .font(.system(size: 40, weight: .semibold, design: .rounded))
+                            Image(systemName: "indianrupeesign")
+                                .font(.system(size: 30, weight: .semibold, design: .rounded))
                                 .foregroundStyle(.tertiary)
                             
-                            TextField("0", text: $amountString)
-                                .font(.system(size: 40, weight: .semibold, design: .rounded))
-                                .foregroundStyle(.primary)
-                                .multilineTextAlignment(.center)
-                                .keyboardType(.decimalPad)
-                                .focused($focusedField, equals: .amount)
-                                .fixedSize()
-                                .onChange(of: amountString) { oldValue, newValue in
-                                    // Filter valid characters
-                                    let filtered = newValue.filter { "0123456789.".contains($0) }
-                                    if filtered != newValue {
-                                        amountString = filtered
-                                    }
-                                    
-                                    // Ensure only one decimal point
-                                    if let firstIndex = amountString.firstIndex(of: "."),
-                                       let secondIndex = amountString[amountString.index(after: firstIndex)...].firstIndex(of: ".") {
-                                        amountString = String(amountString[..<secondIndex])
-                                    }
-                                    
-                                    // Haptic Feedback for typing
-                                    if oldValue != amountString {
-                                        let generator = UIImpactFeedbackGenerator(style: .light)
-                                        generator.impactOccurred()
-                                    }
-                                }
-                                .onChange(of: focusedField) { oldValue, newValue in
-                                    if newValue == .amount {
-                                        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                                            sheetDetent = .large
+                            if isEditing {
+                                TextField("0", text: $amountString)
+                                    .font(.system(size: 40, weight: .semibold, design: .rounded))
+                                    .foregroundStyle(.primary)
+                                    .multilineTextAlignment(.center)
+                                    .keyboardType(.decimalPad)
+                                    .focused($focusedField, equals: .amount)
+                                    .fixedSize()
+                                    .onChange(of: amountString) { oldValue, newValue in
+                                        // Filter valid characters
+                                        let filtered = newValue.filter { "0123456789.".contains($0) }
+                                        if filtered != newValue {
+                                            amountString = filtered
+                                        }
+                                        
+                                        // Ensure only one decimal point
+                                        if let firstIndex = amountString.firstIndex(of: "."),
+                                           let secondIndex = amountString[amountString.index(after: firstIndex)...].firstIndex(of: ".") {
+                                            amountString = String(amountString[..<secondIndex])
+                                        }
+                                        
+                                        // Haptic Feedback for typing
+                                        if oldValue != amountString {
+                                            let generator = UIImpactFeedbackGenerator(style: .light)
+                                            generator.impactOccurred()
                                         }
                                     }
-                                }
+                                    .onChange(of: focusedField) { oldValue, newValue in
+                                        if newValue == .amount {
+                                            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                                                sheetDetent = .large
+                                            }
+                                        }
+                                    }
+                            } else {
+                                Text(amountString.isEmpty ? "0" : (Double(amountString)?.formatted(.number.precision(.fractionLength(0...2))) ?? amountString))
+                                    .font(.system(size: 40, weight: .semibold, design: .rounded))
+                                    .foregroundStyle(.primary)
+                            }
                         }
                         .scaleEffect(amountString.isEmpty ? 1.0 : 1.05)
                         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: amountString)
+                        .offset(x: -15) // Balance visual center for currency symbol
                     
                     }
                     .frame(maxWidth: .infinity)

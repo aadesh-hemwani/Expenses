@@ -78,8 +78,7 @@ class ExpenseRepository: ObservableObject {
     
     func fetchAllStats() {
         print("Fetching stats for user: \(userId)")
-        db.collection("users").document(userId).collection("stats")
-            //.order(by: FieldPath.documentID(), descending: true) // Temporarily remove ordering
+        statsListenerRegistration = db.collection("users").document(userId).collection("stats")
             .addSnapshotListener { [weak self] (querySnapshot, error) in
                 guard let self = self else { return }
                 
@@ -88,49 +87,89 @@ class ExpenseRepository: ObservableObject {
                     return
                 }
                 
-                print("Stats documents count: \(querySnapshot?.documents.count ?? 0)")
-                querySnapshot?.documents.forEach { print("Stats doc: \($0.documentID) -> \($0.data())") }
+                // print("Stats documents count: \(querySnapshot?.documents.count ?? 0)")
                 
-                self.allStats = querySnapshot?.documents.map { document in
-                    let data = document.data()
-                    var total: Double = 0.0
+                DispatchQueue.main.async {
+                    self.allStats = querySnapshot?.documents.map { document in
+                        let data = document.data()
+                        var total: Double = 0.0
+                        
+                        if let t = data["total"] as? Double {
+                            total = t
+                        } else if let t = data["total"] as? Int {
+                            total = Double(t)
+                        } else if let tString = data["total"] as? String, let t = Double(tString) {
+                             total = t
+                        }
+                        
+                        return MonthlyStats(id: document.documentID, total: total)
+                    } ?? []
                     
-                    if let t = data["total"] as? Double {
-                        total = t
-                    } else if let t = data["total"] as? Int {
-                        total = Double(t)
-                    } else if let tString = data["total"] as? String, let t = Double(tString) {
-                         total = t
-                    }
-                    
-                    // Default to 0 if missing to verify document existence
-                    return MonthlyStats(id: document.documentID, total: total)
-                } ?? []
-                
-                // Sort manually after fetching
-                self.allStats.sort { ($0.id ?? "") > ($1.id ?? "") }
+                    self.allStats.sort { ($0.id ?? "") > ($1.id ?? "") }
+                }
             }
+    }
+    
+    func refreshStats() {
+        print("Forcing stats refresh...")
+        statsListenerRegistration?.remove()
+        fetchAllStats()
+    }
+    
+    // ... (rest of methods)
+    
+    // MARK: - Stats Sync Helpers
+    
+    private func updateStat(for date: Date, amount: Double) {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM"
+        let monthID = formatter.string(from: date)
+        
+        print("Updating stat for \(monthID): adding \(amount)")
+        
+        let statsRef = db.collection("users").document(userId).collection("stats").document(monthID)
+        statsRef.setData(["total": FieldValue.increment(amount)], merge: true) { error in
+            if let error = error {
+                print("Error updating stat for \(monthID): \(error)")
+            } else {
+                print("Successfully updated stat for \(monthID)")
+            }
+        }
     }
     
     func addExpense(_ expense: Expense) {
         do {
             let _ = try db.collection("users").document(userId).collection("expenses").addDocument(from: expense)
+            updateStat(for: expense.date, amount: expense.amount)
             invalidateCache(for: expense.date)
         } catch {
             print("Error adding expense: \(error)")
             self.errorMessage = "Failed to add expense: \(error.localizedDescription)"
         }
-        }
+    }
     
     func update(expense: Expense) {
         guard let expenseID = expense.id else { return }
         
-        do {
-            try db.collection("users").document(userId).collection("expenses").document(expenseID).setData(from: expense)
-            invalidateCache(for: expense.date)
-        } catch {
-            print("Error updating expense: \(error)")
-            self.errorMessage = "Failed to update expense: \(error.localizedDescription)"
+        // Fetch old expense to adjust stats
+        db.collection("users").document(userId).collection("expenses").document(expenseID).getDocument { [weak self] (document, error) in
+            guard let self = self else { return }
+            
+            if let document = document, document.exists, let oldExpense = try? document.data(as: Expense.self) {
+                 self.adjustStatsForUpdate(oldExpense: oldExpense, newExpense: expense)
+            }
+            
+            // Perform update
+            do {
+                try self.db.collection("users").document(self.userId).collection("expenses").document(expenseID).setData(from: expense)
+                self.invalidateCache(for: expense.date)
+                // Also invalidate cache for old date if different
+                // We'd need oldExpense here too if we want to be perfect, but let's assume date change is rare or cache will expire appropriately contextually.
+                // Actually if we changed month, we should invalidate old month cache too.
+            } catch {
+                print("Error updating expense: \(error)")
+                self.errorMessage = "Failed to update expense: \(error.localizedDescription)"
+            }
         }
     }
     
@@ -147,8 +186,31 @@ class ExpenseRepository: ObservableObject {
                 print("Error removing document: \(error)")
                 self?.errorMessage = "Failed to delete expense: \(error.localizedDescription)"
             } else {
+                self?.updateStat(for: expense.date, amount: -expense.amount)
                 self?.invalidateCache(for: expense.date)
             }
+        }
+    }
+    
+    // MARK: - Stats Sync Helpers
+    
+
+    
+    private func adjustStatsForUpdate(oldExpense: Expense, newExpense: Expense) {
+        let calendar = Calendar.current
+        
+        if calendar.isDate(oldExpense.date, equalTo: newExpense.date, toGranularity: .month) &&
+           calendar.isDate(oldExpense.date, equalTo: newExpense.date, toGranularity: .year) {
+            // Same month, just diff
+            let diff = newExpense.amount - oldExpense.amount
+            if abs(diff) > 0.01 {
+                updateStat(for: newExpense.date, amount: diff)
+            }
+        } else {
+            // Month changed
+            updateStat(for: oldExpense.date, amount: -oldExpense.amount)
+            updateStat(for: newExpense.date, amount: newExpense.amount)
+            invalidateCache(for: oldExpense.date) // Make sure to invalidate old cache too
         }
     }
     

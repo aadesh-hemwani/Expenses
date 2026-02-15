@@ -44,10 +44,14 @@ struct DonutChartView: View {
                 
                 if showCenterText {
                     VStack(spacing: 2) {
-                        Text("₹\(Int(totalAmount))")
-                            .font(centerTextFont)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.primary)
+                        HStack(spacing: 2) {
+                            Image(systemName: "indianrupeesign")
+                                .font(.headline) // Adjust size relative to centerTextFont
+                            Text("\(Int(totalAmount))")
+                                .font(centerTextFont)
+                        }
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.primary)
                         
                         Text(centerTextTitle)
                             .font(.caption)

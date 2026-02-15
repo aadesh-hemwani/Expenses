@@ -63,11 +63,15 @@ struct MonthDetailView: View {
                                     .foregroundStyle(isToday(day.date) ? .blue : .primary)
                                 
                                 if let amount = expensesByDay[day.dayNumber], amount > 0 {
-                                    Text("₹\(Int(amount))")
-                                        .font(.caption2)
-                                        .foregroundStyle(amount > dailyAverage * 1.5 ? .primary : .secondary)
-                                        .lineLimit(1)
-                                        .minimumScaleFactor(0.8)
+                                    HStack(spacing: 2) {
+                                        Image(systemName: "indianrupeesign")
+                                            .font(.caption2)
+                                        Text("\(Int(amount))")
+                                            .font(.caption2)
+                                    }
+                                    .foregroundStyle(amount > dailyAverage * 1.5 ? .primary : .secondary)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.8)
                                 } else {
                                     Text(" ") // Spacer to keep alignment
                                         .font(.caption2)
@@ -142,10 +146,16 @@ struct MonthDetailView: View {
                         Spacer()
                         
                         // Amount
-                        Text("₹" + item.amount.formatted(.number.precision(.fractionLength(0...2))))
-                            .font(.body)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.primary) // Fixed .label to .primary
+                        HStack(spacing: 2) {
+                            Image(systemName: "indianrupeesign")
+                                .font(.caption)
+                                .foregroundStyle(.primary)
+
+                            Text(item.amount.formatted(.number.precision(.fractionLength(0...2))))
+                                .font(.body)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.primary)
+                        }
                         
                         // Chevron (implicit in NavigationLink, but adding Spacer creates look)
                         // List rows automatically have selection highlight

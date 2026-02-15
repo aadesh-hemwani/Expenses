@@ -90,8 +90,12 @@ struct ExpenseListView: View {
                             .fontWeight(.medium)
                             .foregroundStyle(Color(.secondaryLabel))
 
-                        HStack(alignment: .lastTextBaseline, spacing: 0) {
-                            Text("₹" + formattedTotal.whole)
+                        HStack(alignment: .lastTextBaseline, spacing: 4) {
+                            Image(systemName: "indianrupeesign")
+                                .font(.system(size: 30, weight: .bold)) // Slightly smaller than text for visual balance
+                                .foregroundStyle(Color(.label))
+                            
+                            Text(formattedTotal.whole)
                                 .font(.system(size: 40, weight: .bold))
                                 .foregroundStyle(Color(.label))
                             
@@ -108,16 +112,26 @@ struct ExpenseListView: View {
                             
                             HStack(spacing: 4) {
                                 Circle().fill(Theme.getAccentColor()).frame(width: 6, height: 6)
-                                Text("Regular: ₹\(Int(regularTotal))")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                HStack(spacing: 2) {
+                                    Text("Regular:")
+                                    Image(systemName: "indianrupeesign")
+                                        .font(.caption2)
+                                    Text("\(Int(regularTotal))")
+                                }
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                             }
                             
                             HStack(spacing: 4) {
                                 Circle().fill(Color.orange).frame(width: 6, height: 6)
-                                Text("One-off: ₹\(Int(oneOffTotal))")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                HStack(spacing: 2) {
+                                    Text("One-off:")
+                                    Image(systemName: "indianrupeesign")
+                                        .font(.caption2)
+                                    Text("\(Int(oneOffTotal))")
+                                }
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                             }
                         }
                         .padding(.bottom, 4)

@@ -126,11 +126,17 @@ struct SummaryCard: View {
             }
             
             VStack(alignment: .leading, spacing: 8) {
-                Text("₹\(Int(total))")
-                    .font(.largeTitle) // Increased size
-                    .fontWeight(.bold)
-                    .foregroundStyle(.primary)
-                    .contentTransition(.numericText(value: total))
+                HStack(spacing: 2) {
+                    Image(systemName: "indianrupeesign")
+                        .font(.title) // Slightly smaller than largeTitle
+                        .fontWeight(.bold)
+                    
+                    Text("\(Int(total))")
+                        .font(.largeTitle) // Increased size
+                        .fontWeight(.bold)
+                }
+                .foregroundStyle(.primary)
+                .contentTransition(.numericText(value: total))
                 
                 if trend != 0 {
                     HStack(spacing: 4) {
@@ -175,30 +181,49 @@ struct BudgetCard: View {
             
             VStack(alignment: .leading, spacing: 8) {
                 HStack(alignment: .lastTextBaseline) {
-                    Text("₹\(Int(total))")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(isOverBudget ? Color(.systemRed) : .primary)
+                    HStack(spacing: 2) {
+                        Image(systemName: "indianrupeesign")
+                            .font(.title3)
+                        
+                        Text("\(Int(total))")
+                            .font(.title2)
+                    }
+                    .fontWeight(.semibold)
+                    .foregroundStyle(isOverBudget ? Color(.systemRed) : .primary)
                     
-                    Text("of ₹\(Int(budget))")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    HStack(spacing: 2) {
+                        Text("of")
+                        Image(systemName: "indianrupeesign")
+                            .font(.caption)
+                        Text("\(Int(budget))")
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                     
                     Spacer()
                 }
                 
                 ProgressView(value: min(progress, 1.0))
-                    .tint(isOverBudget ? Color(.systemRed) : Theme.getAccentColor()) // Use Theme color for normal state
-                    .scaleEffect(x: 1, y: 1.5, anchor: .center) // Slightly thicker track
+                    .tint(isOverBudget ? Color(.systemRed) : Theme.getAccentColor())
+                    .scaleEffect(x: 1, y: 1.5, anchor: .center)
             }
             
             HStack {
                 if isOverBudget {
-                    Text("Over budget by ₹\(Int(total - budget))")
-                        .foregroundStyle(Color(.systemRed))
+                    HStack(spacing: 2) {
+                        Text("Over budget by")
+                        Image(systemName: "indianrupeesign")
+                            .font(.caption)
+                        Text("\(Int(total - budget))")
+                    }
+                    .foregroundStyle(Color(.systemRed))
                 } else {
-                    Text("₹\(Int(budget - total)) remaining")
-                        .foregroundStyle(.secondary)
+                    HStack(spacing: 2) {
+                        Image(systemName: "indianrupeesign")
+                            .font(.caption)
+                        Text("\(Int(budget - total)) remaining")
+                    }
+                    .foregroundStyle(.secondary)
                 }
                 Spacer()
             }
@@ -209,7 +234,7 @@ struct BudgetCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 }
-
+        
 // MARK: - 3. Top Category Card
 struct TopCategoryCard: View {
     let expenses: [Expense]
@@ -245,9 +270,13 @@ struct TopCategoryCard: View {
                         .fontWeight(.semibold)
                         .foregroundStyle(.primary)
                     
-                    Text("₹\(Int(top.amount))")
-                        .font(.body)
-                        .foregroundStyle(.primary)
+                    HStack(spacing: 2) {
+                        Image(systemName: "indianrupeesign")
+                            .font(.body)
+                        Text("\(Int(top.amount))")
+                            .font(.body)
+                    }
+                    .foregroundStyle(.primary)
                     
                     Text("\(Int((top.amount / totalAmount) * 100))% of spending")
                         .font(.caption)
@@ -273,8 +302,7 @@ struct TopCategoryCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 }
-
-// MARK: - 4. Trends Card
+        
 // MARK: - 4. Trends Card
 struct TrendsCard: View {
     let expenses: [Expense]
@@ -502,12 +530,12 @@ struct MonthComparisonCard: View {
                     currentTotal += amount
                     result.append((day, currentTotal, type))
                 } else if !result.isEmpty {
-                     // Carry forward previous total for days with no expenses
-                     // But only if we have started tracking (don't pre-fill 0s if month hasn't started?)
-                     // Actually for cumulative graph, we usually start at 0 and go up.
-                     // But if data is sparse, line chart interpolates.
-                     // Better to have a point for every day so the line is stepped or continuous correctly.
-                     result.append((day, currentTotal, type))
+                    // Carry forward previous total for days with no expenses
+                    // But only if we have started tracking (don't pre-fill 0s if month hasn't started?)
+                    // Actually for cumulative graph, we usually start at 0 and go up.
+                    // But if data is sparse, line chart interpolates.
+                    // Better to have a point for every day so the line is stepped or continuous correctly.
+                    result.append((day, currentTotal, type))
                 }
             }
             return result
@@ -654,26 +682,36 @@ struct TypeDistributionCard: View {
                 VStack(alignment: .leading, spacing: 12) {
                     // Regular
                     HStack {
-                         Circle().fill(Theme.getAccentColor()).frame(width: 8, height: 8)
-                         VStack(alignment: .leading, spacing: 2) {
-                             Text("Regular")
-                                 .font(.caption)
-                                 .foregroundStyle(.secondary)
-                             Text("₹\(Int(regularTotal))")
-                                 .font(.headline)
-                         }
+                        Circle().fill(Theme.getAccentColor()).frame(width: 8, height: 8)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Regular")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            
+                            HStack(spacing: 2) {
+                                Image(systemName: "indianrupeesign")
+                                    .font(.subheadline)
+                                Text("\(Int(regularTotal))")
+                                    .font(.headline)
+                            }
+                        }
                     }
                     
                     // One-off
                     HStack {
-                         Circle().fill(Color.orange).frame(width: 8, height: 8)
-                         VStack(alignment: .leading, spacing: 2) {
-                             Text("One-off")
-                                 .font(.caption)
-                                 .foregroundStyle(.secondary)
-                             Text("₹\(Int(oneOffTotal))")
-                                 .font(.headline)
-                         }
+                        Circle().fill(Color.orange).frame(width: 8, height: 8)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("One-off")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            
+                            HStack(spacing: 2) {
+                                Image(systemName: "indianrupeesign")
+                                    .font(.subheadline)
+                                Text("\(Int(oneOffTotal))")
+                                    .font(.headline)
+                            }
+                        }
                     }
                 }
                 

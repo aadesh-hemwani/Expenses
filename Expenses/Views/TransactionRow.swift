@@ -30,10 +30,16 @@ struct TransactionRow: View {
             
             // Amount & Time
             VStack(alignment: .trailing, spacing: 4) {
-                Text("₹" + expense.amount.formatted(.number.precision(.fractionLength(0...2))))
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
-                    .contentTransition(.numericText())
+                HStack(spacing: 2) {
+                    Image(systemName: "indianrupeesign")
+                        .font(.caption)
+                        .foregroundStyle(.primary)
+                    
+                    Text(expense.amount.formatted(.number.precision(.fractionLength(0...2))))
+                }
+                .fontWeight(.semibold)
+                .foregroundStyle(.primary)
+                //.contentTransition(.numericText()) // numericText transition typically applies to Text views, check if it works on HStack or disable it correctly
                 
                 Text(expense.date, format: .dateTime.hour().minute())
                     .font(.caption2)

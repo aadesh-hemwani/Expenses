@@ -31,87 +31,133 @@ struct MonthStatsEntry: TimelineEntry {
 
 struct MonthStatsWidgetEntryView : View {
     var entry: MonthStatsProvider.Entry
+    @Environment(\.widgetFamily) var family
 
     var body: some View {
-        HStack(alignment: .bottom) {
-            // Left Side: Text Info
-            VStack(alignment: .leading, spacing: 4) {
-                Text(entry.data.monthName)
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-                
-                Text(formatCurrency(entry.data.totalAmount))
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundStyle(.primary)
-                    .minimumScaleFactor(0.7)
-                
-                Spacer()
-                
-                Text("Updated \(entry.date, style: .time)")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
+        switch family {
+        case .accessoryCircular:
+            ZStack {
+                AccessoryWidgetBackground()
+                Gauge(value: minimum(entry.data.totalAmount, target: 20000), in: 0...20000) {
+                    Image(systemName: "indianrupeesign")
+                } currentValueLabel: {
+                    Text(entry.data.totalAmount, format: .number.precision(.fractionLength(0)))
+                        .font(.caption2)
+                }
+                .gaugeStyle(.accessoryCircular)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
             
-            // Right Side: Minimal Trend Graph
-            if !entry.data.dailyPoints.isEmpty {
-                Chart {
-                    ForEach(Array(entry.data.dailyPoints.enumerated()), id: \.offset) { index, value in
-                        LineMark(
-                            x: .value("Day", index),
-                            y: .value("Amount", value)
-                        )
-                        .interpolationMethod(.catmullRom)
-                        .foregroundStyle(
-                            .linearGradient(
-                                colors: [.blue, .purple],
-                                startPoint: .bottom,
-                                endPoint: .top
-                            )
-                        )
-                        .lineStyle(StrokeStyle(lineWidth: 3, lineCap: .round))
-                        
-                        AreaMark(
-                            x: .value("Day", index),
-                            y: .value("Amount", value)
-                        )
-                        .interpolationMethod(.catmullRom)
-                        .foregroundStyle(
-                            .linearGradient(
-                                colors: [.blue.opacity(0.2), .purple.opacity(0.0)],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
+        case .accessoryRectangular:
+            ZStack {
+                AccessoryWidgetBackground()
+                    .cornerRadius(10)
+                HStack {
+                    Image(systemName: "indianrupeesign.circle.fill")
+                        .font(.title)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    VStack(alignment: .trailing) {
+                        Text(entry.data.monthName)
+                            .font(.caption2)
+                            .textCase(.uppercase)
+                            .foregroundStyle(.secondary)
+                        Text(entry.data.totalAmount, format: .number.precision(.fractionLength(0)))
+                            .font(.headline)
+                            .bold()
                     }
                 }
-                .chartXAxis(.hidden)
-                .chartYAxis(.hidden)
-                .frame(width: 120) // Fixed width for graph
-            } else {
-                // Empty State
-                 VStack {
-                    Image(systemName: "chart.xyaxis.line")
-                        .font(.largeTitle)
-                        .foregroundStyle(.tertiary)
-                    Text("No Data")
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+            }
+            
+        case .accessoryInline:
+            Text("Spend: \(entry.data.totalAmount, format: .number.precision(.fractionLength(0)))")
+            
+        case .systemMedium:
+            HStack(alignment: .bottom) {
+                // Left Side: Text Info
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(entry.data.monthName)
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.secondary)
+                        .textCase(.uppercase)
+                    
+                    HStack(spacing: 2) {
+                        Image(systemName: "indianrupeesign")
+                            .font(.system(size: 24, weight: .bold, design: .rounded)) // Matched size
+                        Text(entry.data.totalAmount, format: .number.precision(.fractionLength(0)))
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                    }
+                    .foregroundStyle(.primary)
+                    .minimumScaleFactor(0.7)
+                    
+                    Spacer()
+                    
+                    Text("Updated \(entry.date, style: .time)")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                 }
-                .frame(width: 120)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                
+                // Right Side: Minimal Trend Graph
+                if !entry.data.dailyPoints.isEmpty {
+                    Chart {
+                        ForEach(Array(entry.data.dailyPoints.enumerated()), id: \.offset) { index, value in
+                            LineMark(
+                                x: .value("Day", index),
+                                y: .value("Amount", value)
+                            )
+                            .interpolationMethod(.catmullRom)
+                            .foregroundStyle(
+                                .linearGradient(
+                                    colors: [.blue, .purple],
+                                    startPoint: .bottom,
+                                    endPoint: .top
+                                )
+                            )
+                            .lineStyle(StrokeStyle(lineWidth: 3, lineCap: .round))
+                            
+                            AreaMark(
+                                x: .value("Day", index),
+                                y: .value("Amount", value)
+                            )
+                            .interpolationMethod(.catmullRom)
+                            .foregroundStyle(
+                                .linearGradient(
+                                    colors: [.blue.opacity(0.2), .purple.opacity(0.0)],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                        }
+                    }
+                    .chartXAxis(.hidden)
+                    .chartYAxis(.hidden)
+                    .frame(width: 120) // Fixed width for graph
+                } else {
+                    // Empty State
+                     VStack {
+                        Image(systemName: "chart.xyaxis.line")
+                            .font(.largeTitle)
+                            .foregroundStyle(.tertiary)
+                        Text("No Data")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
+                    .frame(width: 120)
+                }
             }
+            .padding()
+            
+        default:
+            Text("Unsupported")
         }
-        .padding()
     }
     
-    func formatCurrency(_ amount: Double) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencySymbol = "₹"
-        formatter.maximumFractionDigits = 0
-        return formatter.string(from: NSNumber(value: amount)) ?? "₹0"
+    // Helper to clamp value for gauge (dummy target of 20k for visual)
+    func minimum(_ value: Double, target: Double) -> Double {
+        return min(value, target)
     }
 }
 
@@ -125,7 +171,7 @@ struct MonthStatsWidget: Widget {
         }
         .configurationDisplayName("Monthly Trend")
         .description("Track your current month spending.")
-        .supportedFamilies([.systemMedium])
+        .supportedFamilies([.systemMedium, .accessoryCircular, .accessoryRectangular, .accessoryInline])
     }
 }
 

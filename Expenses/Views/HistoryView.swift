@@ -35,9 +35,15 @@ struct HistoryView: View {
                                     
                                     Spacer()
                                     
-                                    Text("₹" + (NumberFormatter.localizedString(from: NSNumber(value: stat.total), number: .decimal)))
-                                        .fontWeight(.semibold)
-                                        .foregroundStyle(stat.total > 0 ? .primary : .secondary)
+                                    HStack(spacing: 2) {
+                                        Image(systemName: "indianrupeesign")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                        
+                                        Text(NumberFormatter.localizedString(from: NSNumber(value: stat.total), number: .decimal))
+                                    }
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(stat.total > 0 ? .primary : .secondary)
                                 }
                                 .padding(.vertical, 4)
                             }
@@ -48,6 +54,9 @@ struct HistoryView: View {
             .listStyle(.insetGrouped)
             .navigationTitle("History")
             .navigationBarTitleDisplayMode(.large)
+        }
+        .onAppear {
+            repository.refreshStats()
         }
     }
     
