@@ -1,15 +1,15 @@
 import SwiftUI
 
 struct AccentColorView: View {
-    @AppStorage("accumulatedColor") private var accentColorName = "Indigo"
+    @AppStorage("accumulatedColor") private var accentColorName = "Green"
     
     let accentColors: [(name: String, color: Color)] = [
-        ("Indigo", .indigo),
-        ("Teal", .teal),
-        ("Pink", .pink),
-        ("Orange", .orange),
-        ("Purple", .purple),
-        ("Cyan", .cyan)
+        ("Green", Theme.Accents.green),
+        ("Red", Theme.Accents.red),
+        ("Amber", Theme.Accents.amber),
+        ("Pink", Theme.Accents.pink),
+        ("Purple", Theme.Accents.purple),
+        ("Cyan", Theme.Accents.cyan)
     ]
     
     var body: some View {

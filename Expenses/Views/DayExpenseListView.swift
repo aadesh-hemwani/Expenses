@@ -13,11 +13,8 @@ struct DayExpenseListView: View {
                         HStack(spacing: 16) {
                             // Leading Icon
                             ZStack {
-                                Circle()
-                                    .fill(expense.color.opacity(0.1))
-                                    .frame(width: 40, height: 40)
                                 Image(systemName: expense.icon)
-                                    .font(.system(size: 18))
+                                    .font(.system(size: 22))
                                     .foregroundStyle(expense.color)
                                     .symbolRenderingMode(.hierarchical)
                             }

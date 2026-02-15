@@ -63,14 +63,14 @@ struct DonutChartView: View {
     // "Use system dynamic colors only"
     private func categoryColor(for category: String) -> Color {
         switch category {
-        case "Food": return .orange // .systemOrange
-        case "Transport": return .blue // .systemBlue
-        case "Shopping": return .purple // .systemPurple
-        case "Entertainment": return .pink // User asked for specific mapping, let's follow strictly
-        case "Bills": return .yellow // .systemYellow
-        case "Health": return .red // .systemRed
-        case "Other": return .gray
-        default: return .gray
+        case "Food": return Theme.CategoryColors.food
+        case "Transport": return Theme.CategoryColors.transport
+        case "Shopping": return Theme.CategoryColors.shopping
+        case "Entertainment": return Theme.CategoryColors.entertainment
+        case "Bills": return Theme.CategoryColors.bills
+        case "Health": return Theme.CategoryColors.health
+        case "Misc": return Theme.CategoryColors.misc
+        default: return Theme.CategoryColors.misc
         }
     }
 }

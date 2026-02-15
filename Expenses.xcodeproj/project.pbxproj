@@ -7,20 +7,80 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		40F42AD52F41F18C00D91003 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 40F42AD42F41F18C00D91003 /* WidgetKit.framework */; };
+		40F42AD72F41F18C00D91003 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 40F42AD62F41F18C00D91003 /* SwiftUI.framework */; };
+		40F42AE62F41F18E00D91003 /* AddExpensesWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 40F42AD32F41F18C00D91003 /* AddExpensesWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		4882C037F5EE78584EE4D88D /* Pods_Expenses.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1ED4B49A64C16A84C0DB3820 /* Pods_Expenses.framework */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		40F42AE42F41F18E00D91003 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4086A2D12F3E5FD8003FC335 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 40F42AD22F41F18C00D91003;
+			remoteInfo = AddExpensesWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		40F42AEB2F41F18E00D91003 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				40F42AE62F41F18E00D91003 /* AddExpensesWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		1ED4B49A64C16A84C0DB3820 /* Pods_Expenses.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Expenses.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		354344E6567EA0A87FB4BA4E /* Pods-Expenses.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Expenses.release.xcconfig"; path = "Target Support Files/Pods-Expenses/Pods-Expenses.release.xcconfig"; sourceTree = "<group>"; };
 		4086A2D92F3E5FD8003FC335 /* Expenses.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Expenses.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		40F42AD32F41F18C00D91003 /* AddExpensesWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AddExpensesWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		40F42AD42F41F18C00D91003 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		40F42AD62F41F18C00D91003 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		40F42AF32F42012C00D91003 /* AddExpensesWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AddExpensesWidgetExtension.entitlements; sourceTree = "<group>"; };
 		A72412FB1806247BB5FF97CB /* Pods-Expenses.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Expenses.debug.xcconfig"; path = "Target Support Files/Pods-Expenses/Pods-Expenses.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		40F42AE72F41F18E00D91003 /* Exceptions for "AddExpensesWidget" folder in "AddExpensesWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 40F42AD22F41F18C00D91003 /* AddExpensesWidgetExtension */;
+		};
+		40F42AFA2F42022400D91003 /* Exceptions for "Expenses" folder in "AddExpensesWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Managers/WidgetDataManager.swift,
+				Models/WidgetData.swift,
+			);
+			target = 40F42AD22F41F18C00D91003 /* AddExpensesWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		4086A2DB2F3E5FD8003FC335 /* Expenses */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				40F42AFA2F42022400D91003 /* Exceptions for "Expenses" folder in "AddExpensesWidgetExtension" target */,
+			);
 			path = Expenses;
+			sourceTree = "<group>";
+		};
+		40F42AD82F41F18C00D91003 /* AddExpensesWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				40F42AE72F41F18E00D91003 /* Exceptions for "AddExpensesWidget" folder in "AddExpensesWidgetExtension" target */,
+			);
+			path = AddExpensesWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -34,6 +94,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		40F42AD02F41F18C00D91003 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				40F42AD72F41F18C00D91003 /* SwiftUI.framework in Frameworks */,
+				40F42AD52F41F18C00D91003 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -41,6 +110,8 @@
 			isa = PBXGroup;
 			children = (
 				1ED4B49A64C16A84C0DB3820 /* Pods_Expenses.framework */,
+				40F42AD42F41F18C00D91003 /* WidgetKit.framework */,
+				40F42AD62F41F18C00D91003 /* SwiftUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -48,7 +119,9 @@
 		4086A2D02F3E5FD8003FC335 = {
 			isa = PBXGroup;
 			children = (
+				40F42AF32F42012C00D91003 /* AddExpensesWidgetExtension.entitlements */,
 				4086A2DB2F3E5FD8003FC335 /* Expenses */,
+				40F42AD82F41F18C00D91003 /* AddExpensesWidget */,
 				4086A2DA2F3E5FD8003FC335 /* Products */,
 				F1D623A28330A942434999B4 /* Pods */,
 				1F6EB07DEF0BDA4BB4E52741 /* Frameworks */,
@@ -59,6 +132,7 @@
 			isa = PBXGroup;
 			children = (
 				4086A2D92F3E5FD8003FC335 /* Expenses.app */,
+				40F42AD32F41F18C00D91003 /* AddExpensesWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -84,10 +158,12 @@
 				4086A2D62F3E5FD8003FC335 /* Frameworks */,
 				4086A2D72F3E5FD8003FC335 /* Resources */,
 				E1D1E586353808DCB88072D8 /* [CP] Copy Pods Resources */,
+				40F42AEB2F41F18E00D91003 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				40F42AE52F41F18E00D91003 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				4086A2DB2F3E5FD8003FC335 /* Expenses */,
@@ -96,6 +172,28 @@
 			productName = Expenses;
 			productReference = 4086A2D92F3E5FD8003FC335 /* Expenses.app */;
 			productType = "com.apple.product-type.application";
+		};
+		40F42AD22F41F18C00D91003 /* AddExpensesWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 40F42AE82F41F18E00D91003 /* Build configuration list for PBXNativeTarget "AddExpensesWidgetExtension" */;
+			buildPhases = (
+				40F42ACF2F41F18C00D91003 /* Sources */,
+				40F42AD02F41F18C00D91003 /* Frameworks */,
+				40F42AD12F41F18C00D91003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				40F42AD82F41F18C00D91003 /* AddExpensesWidget */,
+			);
+			name = AddExpensesWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = AddExpensesWidgetExtension;
+			productReference = 40F42AD32F41F18C00D91003 /* AddExpensesWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -108,6 +206,9 @@
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					4086A2D82F3E5FD8003FC335 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					40F42AD22F41F18C00D91003 = {
 						CreatedOnToolsVersion = 26.2;
 					};
 				};
@@ -127,12 +228,20 @@
 			projectRoot = "";
 			targets = (
 				4086A2D82F3E5FD8003FC335 /* Expenses */,
+				40F42AD22F41F18C00D91003 /* AddExpensesWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		4086A2D72F3E5FD8003FC335 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		40F42AD12F41F18C00D91003 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -195,7 +304,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		40F42ACF2F41F18C00D91003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		40F42AE52F41F18E00D91003 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 40F42AD22F41F18C00D91003 /* AddExpensesWidgetExtension */;
+			targetProxy = 40F42AE42F41F18E00D91003 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		4086A2E22F3E5FD9003FC335 /* Debug */ = {
@@ -323,6 +447,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Expenses/Expenses.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = MM399J8K87;
@@ -357,6 +482,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Expenses/Expenses.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = MM399J8K87;
@@ -385,6 +511,70 @@
 			};
 			name = Release;
 		};
+		40F42AE92F41F18E00D91003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = AddExpensesWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = MM399J8K87;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AddExpensesWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = AddExpensesWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.adeshhemwani.Expenses.AddExpensesWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		40F42AEA2F41F18E00D91003 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = AddExpensesWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = MM399J8K87;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AddExpensesWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = AddExpensesWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.adeshhemwani.Expenses.AddExpensesWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -402,6 +592,15 @@
 			buildConfigurations = (
 				4086A2E52F3E5FD9003FC335 /* Debug */,
 				4086A2E62F3E5FD9003FC335 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		40F42AE82F41F18E00D91003 /* Build configuration list for PBXNativeTarget "AddExpensesWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				40F42AE92F41F18E00D91003 /* Debug */,
+				40F42AEA2F41F18E00D91003 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

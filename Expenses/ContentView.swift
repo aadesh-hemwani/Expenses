@@ -12,29 +12,19 @@ enum Tabs: String, CaseIterable {
 struct ContentView: View {
     @StateObject private var repository: ExpenseRepository
     @EnvironmentObject var authManager: AuthManager
-    @State private var showingAddExpense = false
-    @State private var selectedTab: Tabs = .history
+    // Removed local state: @State private var showingAddExpense = false
+    @StateObject private var navigationManager = NavigationManager()
     
     // Appearance State (Read Only here, modifiers applied in body)
-    @AppStorage("accumulatedColor") private var accentColorName = "Indigo"
+    @AppStorage("accumulatedColor") private var accentColorName = "Green"
     
     init(userId: String) {
         _repository = StateObject(wrappedValue: ExpenseRepository(userId: userId))
         
-//        // Standard Appearance - Fully Transparent
-//        let appearance = UINavigationBarAppearance()
-//        appearance.configureWithTransparentBackground()
-//        appearance.backgroundEffect = nil // No blur
-//        appearance.shadowColor = .clear // No shadow
-//        
-//        UINavigationBar.appearance().standardAppearance = appearance
-//        UINavigationBar.appearance().compactAppearance = appearance
-//        UINavigationBar.appearance().scrollEdgeAppearance = appearance
-        
     }
     
     var body: some View {
-        TabView(selection: $selectedTab) {
+        TabView(selection: $navigationManager.selectedTab) {
 
             Tab("Home", systemImage: "house", value: .home) {
                 ExpenseListView()
@@ -44,11 +34,11 @@ struct ContentView: View {
                 HistoryView()
             }
             
-            Tab("Insights", systemImage: "chart.bar", value: .insights) {
+            Tab("Insights", systemImage: "chart.line.uptrend.xyaxis", value: .insights) {
                 InsightsView()
             }
             
-            Tab("Profile", systemImage: "person", value: .profile) {
+            Tab("Profile", systemImage: "person.crop.circle", value: .profile) {
                 ProfileView()
             }
             
@@ -57,18 +47,22 @@ struct ContentView: View {
             }
             
         }
-        .onChange(of: selectedTab) { oldValue, newValue in
+        .onChange(of: navigationManager.selectedTab) { oldValue, newValue in
             if newValue == .add {
-                showingAddExpense = true
-                selectedTab = oldValue
+                navigationManager.showingAddExpense = true
+                navigationManager.selectedTab = oldValue
             }
         }
-        .sheet(isPresented: $showingAddExpense) {
+        .sheet(isPresented: $navigationManager.showingAddExpense) {
             AddExpenseView()
                 .environmentObject(repository)
         }
+        .onOpenURL { url in
+            navigationManager.handleDeepLink(url: url)
+        }
         .environmentObject(repository)
-//        .tint(getAccentColor()) // Dynamic Accent Color
+        .environmentObject(navigationManager)
+        .tint(Theme.getAccentColor()) // Dynamic Accent Color
         .alert(item: Binding<IdentifiableString?>(
             get: { repository.errorMessage.map { IdentifiableString(value: $0) } },
             set: { _ in repository.errorMessage = nil }
@@ -83,17 +77,7 @@ struct ContentView: View {
     }
     
     // Helper to map stored string to Color
-    private func getAccentColor() -> Color {
-        switch accentColorName {
-        case "Indigo": return .indigo
-        case "Teal": return .teal
-        case "Pink": return .pink
-        case "Orange": return .orange
-        case "Purple": return .purple
-        case "Cyan": return .cyan
-        default: return .indigo
-        }
-    }
+
 }
 
 #Preview {

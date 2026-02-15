@@ -2,7 +2,7 @@ import Foundation
 import FirebaseFirestore
 import SwiftUI
 
-struct Expense: Identifiable, Codable {
+struct Expense: Identifiable, Codable, Equatable {
     @DocumentID var id: String?
     var title: String
     var amount: Double
@@ -21,24 +21,24 @@ struct Expense: Identifiable, Codable {
     var icon: String {
         switch category {
         case "Food": return "fork.knife"
-        case "Transport": return "car.fill"
-        case "Shopping": return "cart.fill"
-        case "Entertainment": return "tv.fill"
-        case "Health": return "heart.fill"
-        case "Bills": return "doc.text.fill"
-        default: return "ellipsis.circle.fill"
+        case "Transport": return "car"
+        case "Shopping": return "cart"
+        case "Entertainment": return "tv"
+        case "Health": return "heart"
+        case "Bills": return "doc.text"
+        default: return "ellipsis.circle"
         }
     }
     
     var color: Color {
         switch category {
-        case "Food": return .orange
-        case "Transport": return .blue
-        case "Shopping": return .purple
-        case "Entertainment": return .pink
-        case "Health": return .red
-        case "Bills": return .yellow
-        default: return .gray
+        case "Food": return Theme.CategoryColors.food
+        case "Transport": return Theme.CategoryColors.transport
+        case "Shopping": return Theme.CategoryColors.shopping
+        case "Entertainment": return Theme.CategoryColors.entertainment
+        case "Health": return Theme.CategoryColors.health
+        case "Bills": return Theme.CategoryColors.bills
+        default: return Theme.CategoryColors.misc
         }
     }
     static let example = Expense(id: "1", title: "Lunch", amount: 450.0, date: Date(), category: "Food")

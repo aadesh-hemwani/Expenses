@@ -71,6 +71,9 @@ class ExpenseRepository: ObservableObject {
         
         self.currentMonthTotalAmount = currentMonthExpenses.reduce(0) { $0 + $1.amount }
         self.calculateMonthOverMonthChange()
+        
+        // Update Widget
+        WidgetDataManager.shared.save(expenses: expenses)
     }
     
     func fetchAllStats() {

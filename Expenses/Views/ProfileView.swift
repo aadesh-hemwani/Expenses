@@ -5,7 +5,7 @@ struct ProfileView: View {
     @EnvironmentObject var authManager: AuthManager
     
     // Appearance State Persisted
-    @AppStorage("accumulatedColor") private var accentColorName = "Indigo"
+    @AppStorage("accumulatedColor") private var accentColorName = "Green"
     @State private var monthlyBudget: Double = 0.0
     @FocusState private var isBudgetFocused: Bool
     

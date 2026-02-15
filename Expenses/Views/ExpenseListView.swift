@@ -5,6 +5,7 @@ import FirebaseAuth
 struct ExpenseListView: View {
     @EnvironmentObject var repository: ExpenseRepository
     @EnvironmentObject var authManager: AuthManager
+    @EnvironmentObject var navigationManager: NavigationManager
     
     // Computed property for current month and year
     private var currentMonthYear: String {
@@ -97,6 +98,9 @@ struct ExpenseListView: View {
                             .fontWeight(.medium)
                             // Red for increase (spending more), Green for decrease (spending less)
                             .foregroundStyle(percentage > 0 ? .red : .green)
+                            .onTapGesture {
+                                navigationManager.navigate(to: .insights, scrollTo: "MonthComparison")
+                            }
                         }
                     }
                     .padding(.vertical, 8)
@@ -111,13 +115,10 @@ struct ExpenseListView: View {
                             HStack(spacing: 16) {
                                 // Leading Icon
                                 ZStack {
-                                    Circle()
-                                        .fill(expense.color.opacity(0.1))
-                                        .frame(width: 40, height: 40)
                                     Image(systemName: expense.icon)
-                                        .font(.system(size: 18))
+                                        .font(.system(size: 22))
                                         .foregroundStyle(expense.color)
-                                        .symbolRenderingMode(.hierarchical)
+                                        .symbolRenderingMode(.monochrome)
                                 }
                                 
                                 // Title & Category
@@ -138,6 +139,7 @@ struct ExpenseListView: View {
                                     Text("₹" + expense.amount.formatted(.number.precision(.fractionLength(0...2))))
                                         .fontWeight(.semibold)
                                         .foregroundStyle(.primary)
+                                        .contentTransition(.numericText())
                                     
                                     Text(expense.date, format: .dateTime.hour().minute())
                                         .font(.caption2)
@@ -159,6 +161,7 @@ struct ExpenseListView: View {
                 }
             }
             .listStyle(.insetGrouped)
+            .animation(.default, value: repository.expenses)
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
         }
@@ -178,5 +181,6 @@ struct ExpenseListView: View {
         ExpenseListView()
             .environmentObject(ExpenseRepository(userId: "preview_user"))
             .environmentObject(AuthManager())
+            .environmentObject(NavigationManager())
     }
 }

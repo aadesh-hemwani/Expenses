@@ -9,43 +9,50 @@ struct AddExpenseView: View {
     @State private var selectedDate = Date()
     @State private var note = ""
     @State private var selectedCategory = "Food"
-    @FocusState private var isAmountFocused: Bool
     
+    enum Field: Hashable {
+        case amount
+        case note
+    }
+    @FocusState private var focusedField: Field?
+    
+    // Monochromatic SF Symbols for native feel
+    // Monochromatic SF Symbols for native feel
     let categories: [(name: String, icon: String, color: Color)] = [
-        ("Food", "fork.knife", .orange),
-        ("Transport", "car.fill", .blue),
-        ("Shopping", "cart.fill", .purple),
-        ("Entertainment", "tv.fill", .pink),
-        ("Health", "heart.fill", .red),
-        ("Bills", "doc.text.fill", .yellow),
-        ("Misc", "ellipsis.circle.fill", .gray)
+        ("Food", "fork.knife", Theme.CategoryColors.food),
+        ("Transport", "car", Theme.CategoryColors.transport),
+        ("Shopping", "cart", Theme.CategoryColors.shopping),
+        ("Entertainment", "tv", Theme.CategoryColors.entertainment),
+        ("Health", "heart", Theme.CategoryColors.health),
+        ("Bills", "creditcard", Theme.CategoryColors.bills),
+        ("Misc", "square.grid.2x2", Theme.CategoryColors.misc)
     ]
     
     var body: some View {
         NavigationStack {
             Form {
-                // AMOUNT SECTION
+                // Section 1: Large Centered Amount
                 Section {
                     HStack(spacing: 4) {
                         Spacer()
                         Text("₹")
-                            // Increased size
-                            .font(.system(size: 64, weight: .semibold, design: .rounded))
-                            .foregroundStyle(.secondary)
+                            .font(.system(size: 44, weight: .semibold))
+                            .foregroundStyle(.tertiary)
                         
                         TextField("0", text: $amountString)
-                            // Increased size
-                            .font(.system(size: 64, weight: .semibold, design: .rounded))
-                            .keyboardType(.decimalPad)
-                            .focused($isAmountFocused)
+                            .font(.system(size: 52, weight: .semibold))
+                            .foregroundStyle(.primary)
                             .multilineTextAlignment(.leading)
+                            .keyboardType(.decimalPad)
+                            .focused($focusedField, equals: .amount)
                             .fixedSize()
-                            // Restrict to numbers and one decimal point
                             .onChange(of: amountString) { oldValue, newValue in
+                                // Filter valid characters
                                 let filtered = newValue.filter { "0123456789.".contains($0) }
                                 if filtered != newValue {
                                     amountString = filtered
                                 }
+                                
                                 // Ensure only one decimal point
                                 if let firstIndex = amountString.firstIndex(of: "."),
                                    let secondIndex = amountString[amountString.index(after: firstIndex)...].firstIndex(of: ".") {
@@ -54,19 +61,19 @@ struct AddExpenseView: View {
                             }
                         Spacer()
                     }
-                    .padding(.vertical, 0) // No vertical padding
-                    .listRowInsets(EdgeInsets()) // Remove row spacing
+                    .padding(.vertical, 1)
                     .listRowBackground(Color.clear)
                 }
-
-                // NOTE SECTION
+                
+                // Section 2: Note
                 Section {
-                    TextField("Add a note", text: $note)
+                    TextField("Add note", text: $note)
+                        .focused($focusedField, equals: .note)
                 } header: {
                     Text("Note")
                 }
                 
-                // CATEGORY SECTION
+                // Section 3: Category
                 Section {
                     ForEach(categories, id: \.name) { cat in
                         Button {
@@ -76,36 +83,35 @@ struct AddExpenseView: View {
                         } label: {
                             HStack {
                                 Image(systemName: cat.icon)
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundStyle(.white)
-                                    .frame(width: 29, height: 29)
-                                    .background(cat.color)
-                                    .cornerRadius(6)
+                                    .symbolRenderingMode(.monochrome)
+                                    .foregroundStyle(cat.color) // Specific color per category
+                                
                                 Text(cat.name)
                                     .foregroundStyle(Color.primary)
+                                
                                 Spacer()
+                                
                                 if selectedCategory == cat.name {
                                     Image(systemName: "checkmark")
-                                        .foregroundStyle(.blue)
+                                        .foregroundStyle(Theme.getAccentColor())
                                         .fontWeight(.semibold)
                                 }
                             }
                         }
+                        .tint(Color.primary)
                     }
                 } header: {
                     Text("Category")
                 }
                 
-                // DATE & TIME SECTION
+                // Section 4: Date
                 Section {
-                    DatePicker("Date", selection: $selectedDate, displayedComponents: .date)
-                    DatePicker("Time", selection: $selectedDate, displayedComponents: .hourAndMinute)
-                } header: {
-                    Text("Date & Time")
+                    DatePicker("Date", selection: $selectedDate, displayedComponents: [.date, .hourAndMinute])
                 }
             }
             .navigationTitle("New Expense")
             .navigationBarTitleDisplayMode(.inline)
+            .scrollDismissesKeyboard(.interactively)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -124,15 +130,14 @@ struct AddExpenseView: View {
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
                     Button("Done") {
-                        isAmountFocused = false
+                        focusedField = nil
                     }
                 }
             }
             .onAppear {
-                isAmountFocused = true
+                focusedField = .amount
             }
         }
-        .presentationDetents([.large])
         .presentationDragIndicator(.visible)
     }
     
@@ -140,14 +145,15 @@ struct AddExpenseView: View {
     private func saveExpense() {
         guard let amountValue = Double(amountString), amountValue > 0 else { return }
         
-        // Use 'note' as the title, as per data model mapping
         let titleToUse = note.isEmpty ? selectedCategory : note
-        
-        // Ensure date components are preserved/combined correctly if needed, 
-        // though typically DatePicker handles this well enough for simple use cases.
         
         let expense = Expense(id: nil, title: titleToUse, amount: amountValue, date: selectedDate, category: selectedCategory)
         repository.addExpense(expense)
+        
+        // Haptic Feedback
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+        
         dismiss()
     }
 }
