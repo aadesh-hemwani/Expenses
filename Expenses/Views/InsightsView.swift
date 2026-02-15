@@ -37,7 +37,10 @@ struct InsightsView: View {
                         MonthComparisonCard(currentExpenses: currentMonthExpenses, lastMonthExpenses: lastMonthExpenses)
                             .id("MonthComparison")
 
-                        // 6. Highlights Card - Updated style
+                        // 6. Type Distribution Card
+                         TypeDistributionCard(expenses: currentMonthExpenses)
+
+                        // 7. Highlights Card - Updated style
                          HighlightsCard(total: totalThisMonth, budget: budget, trend: trendPercentage, expenses: currentMonthExpenses)
                     }
                     .padding(.horizontal, 16)
@@ -591,6 +594,95 @@ struct HighlightRow: View {
                 .font(.subheadline)
                 .foregroundStyle(.primary)
         }
+    }
+}
+
+
+// MARK: - 7. Type Distribution Card
+struct TypeDistributionCard: View {
+    let expenses: [Expense]
+    
+    private var regularTotal: Double {
+        expenses.filter { $0.type == .regular }.reduce(0) { $0 + $1.amount }
+    }
+    
+    private var oneOffTotal: Double {
+        expenses.filter { $0.type == .oneOff }.reduce(0) { $0 + $1.amount }
+    }
+    
+    private var total: Double {
+        regularTotal + oneOffTotal
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Spending Structure")
+                .font(.headline)
+            
+            HStack(spacing: 20) {
+                // Charts
+                Chart {
+                    if total > 0 {
+                        SectorMark(
+                            angle: .value("Amount", regularTotal),
+                            innerRadius: .ratio(0.6),
+                            angularInset: 2
+                        )
+                        .foregroundStyle(Theme.getAccentColor())
+                        .cornerRadius(4)
+                        
+                        SectorMark(
+                            angle: .value("Amount", oneOffTotal),
+                            innerRadius: .ratio(0.6),
+                            angularInset: 2
+                        )
+                        .foregroundStyle(Color.orange)
+                        .cornerRadius(4)
+                    } else {
+                        // Placeholder if no data
+                        SectorMark(
+                            angle: .value("Amount", 1),
+                            innerRadius: .ratio(0.6),
+                            angularInset: 0
+                        )
+                        .foregroundStyle(Color(.systemGray5))
+                    }
+                }
+                .frame(width: 100, height: 100)
+                
+                // Legend / Data
+                VStack(alignment: .leading, spacing: 12) {
+                    // Regular
+                    HStack {
+                         Circle().fill(Theme.getAccentColor()).frame(width: 8, height: 8)
+                         VStack(alignment: .leading, spacing: 2) {
+                             Text("Regular")
+                                 .font(.caption)
+                                 .foregroundStyle(.secondary)
+                             Text("₹\(Int(regularTotal))")
+                                 .font(.headline)
+                         }
+                    }
+                    
+                    // One-off
+                    HStack {
+                         Circle().fill(Color.orange).frame(width: 8, height: 8)
+                         VStack(alignment: .leading, spacing: 2) {
+                             Text("One-off")
+                                 .font(.caption)
+                                 .foregroundStyle(.secondary)
+                             Text("₹\(Int(oneOffTotal))")
+                                 .font(.headline)
+                         }
+                    }
+                }
+                
+                Spacer()
+            }
+        }
+        .padding(20)
+        .background(Color(.secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 }
 

@@ -8,6 +8,8 @@ struct MonthDetailView: View {
     @State private var expenses: [Expense] = []
     @State private var isLoading = true
     @State private var selectedDay: IdentifiableDate?
+    @State private var expenseToEdit: Expense?
+    @State private var selectedFilter: Expense.ExpenseType? = nil // nil = All
     
     // Calendar Grid Columns
     // Calendar Grid Columns
@@ -16,6 +18,20 @@ struct MonthDetailView: View {
 
     var body: some View {
         List {
+            // MARK: - Filter Section
+            Section {
+                Picker("Filter by Type", selection: $selectedFilter) {
+                    Text("All").tag(Optional<Expense.ExpenseType>.none)
+                    ForEach(Expense.ExpenseType.allCases, id: \.self) { type in
+                        Text(type.rawValue).tag(Optional(type))
+                    }
+                }
+                .pickerStyle(.palette)
+                .listRowInsets(EdgeInsets(top: 10, leading: 20, bottom: 0, trailing: 20))
+                .listRowBackground(Color.clear)
+                .padding(.vertical, 4)
+            }
+            
             // MARK: - Calendar Section
             Section {
                 VStack(spacing: 12) {
@@ -79,9 +95,9 @@ struct MonthDetailView: View {
             // MARK: - Chart Section
             Section {
                 VStack(spacing: 0) {
-                    if !expenses.isEmpty {
+                    if !filteredExpenses.isEmpty {
                         DonutChartView(
-                            expenses: expenses,
+                            expenses: filteredExpenses,
                             innerRadiusRatio: 0.7,
                             angularInset: 4,
                             showCenterText: true,
@@ -147,40 +163,13 @@ struct MonthDetailView: View {
             ForEach(groupedExpenses) { group in
                 Section {
                     ForEach(group.expenses) { expense in
-                        HStack(spacing: 16) {
-                            // Leading Icon
-                            ZStack {
-                                Image(systemName: expense.icon)
-                                    .font(.system(size: 22))
-                                    .foregroundStyle(expense.color)
-                                    .symbolRenderingMode(.hierarchical)
+                        TransactionRow(expense: expense)
+                            .onTapGesture {
+                                expenseToEdit = expense
                             }
-                            
-                            // Title & Category
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(expense.title)
-                                    .font(.body)
-                                    .fontWeight(.medium)
-                                
-                                Text(expense.category)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            
-                            Spacer()
-                            
-                            // Amount & Time
-                            VStack(alignment: .trailing, spacing: 4) {
-                                Text("₹" + expense.amount.formatted(.number.precision(.fractionLength(0...2))))
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(.primary)
-                                
-                                Text(expense.date, format: .dateTime.hour().minute())
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        .padding(.vertical, 4)
+                    }
+                    .onDelete { offsets in
+                        deleteExpenses(at: offsets, in: group)
                     }
                 } header: {
                     Text(group.title)
@@ -199,6 +188,10 @@ struct MonthDetailView: View {
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }
+        .sheet(item: $expenseToEdit) { expense in
+            AddExpenseView(expenseToEdit: expense)
+                .environmentObject(repository)
+        }
         .task {
             repository.fetchExpenses(forMonth: monthID) { fetchedExpenses in
                 self.expenses = fetchedExpenses
@@ -211,7 +204,7 @@ struct MonthDetailView: View {
     
     private func expensesForDay(_ date: Date) -> [Expense] {
         let calendar = Calendar.current
-        return expenses.filter { calendar.isDate($0.date, inSameDayAs: date) }
+        return filteredExpenses.filter { calendar.isDate($0.date, inSameDayAs: date) }
             .sorted { $0.date > $1.date }
     }
     
@@ -246,7 +239,7 @@ struct MonthDetailView: View {
     private var expensesByDay: [Int: Double] {
         let calendar = Calendar.current
         var dict: [Int: Double] = [:]
-        for expense in expenses {
+        for expense in filteredExpenses {
             let day = calendar.component(.day, from: expense.date)
             dict[day, default: 0] += expense.amount
         }
@@ -280,7 +273,7 @@ struct MonthDetailView: View {
     }
     
     private var categoryData: [CategoryData] {
-        let grouped = Dictionary(grouping: expenses, by: { $0.category })
+        let grouped = Dictionary(grouping: filteredExpenses, by: { $0.category })
         return grouped.map { CategoryData(category: $0.key, amount: $0.value.reduce(0) { $0 + $1.amount }) }
             .sorted { $0.amount > $1.amount }
     }
@@ -320,13 +313,30 @@ struct MonthDetailView: View {
     }
     
     private var groupedExpenses: [TransactionGroup] {
-        let grouped = Dictionary(grouping: expenses) { expense in
+        let grouped = Dictionary(grouping: filteredExpenses) { expense in
             Calendar.current.startOfDay(for: expense.date)
         }
         return grouped.map { (key, value) in
             TransactionGroup(date: key, expenses: value)
         }
         .sorted { $0.date > $1.date }
+    }
+    
+    private func deleteExpenses(at offsets: IndexSet, in group: TransactionGroup) {
+        offsets.forEach { index in
+            let expenseToDelete = group.expenses[index]
+            repository.delete(expense: expenseToDelete)
+            
+            // Locally remove for immediate UI feedback (optional, since repository updates published expenses)
+            if let index = expenses.firstIndex(where: { $0.id == expenseToDelete.id }) {
+                expenses.remove(at: index)
+            }
+        }
+    }
+    
+    private var filteredExpenses: [Expense] {
+        guard let filter = selectedFilter else { return expenses }
+        return expenses.filter { $0.type == filter }
     }
 }
 

@@ -57,8 +57,18 @@ struct ExpenseListView: View {
         }
     }
     
+    @State private var expenseToEdit: Expense?
+    @State private var selectedFilter: Expense.ExpenseType? = nil // nil = All
+    
+    private var filteredExpenses: [Expense] {
+        if let filter = selectedFilter {
+            return repository.expenses.filter { $0.type == filter }
+        }
+        return repository.expenses
+    }
+    
     private var groupedExpenses: [TransactionGroup] {
-        let grouped = Dictionary(grouping: repository.expenses) { expense in
+        let grouped = Dictionary(grouping: filteredExpenses) { expense in
             Calendar.current.startOfDay(for: expense.date)
         }
         return grouped.map { (key, value) in
@@ -91,6 +101,28 @@ struct ExpenseListView: View {
                         }
                         .contentTransition(.numericText())
                         
+                        // Segregated Totals
+                        HStack(spacing: 12) {
+                            let regularTotal = repository.expenses.filter { $0.type == .regular && Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .month) }.reduce(0) { $0 + $1.amount }
+                            let oneOffTotal = repository.expenses.filter { $0.type == .oneOff && Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .month) }.reduce(0) { $0 + $1.amount }
+                            
+                            HStack(spacing: 4) {
+                                Circle().fill(Theme.getAccentColor()).frame(width: 6, height: 6)
+                                Text("Regular: ₹\(Int(regularTotal))")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            
+                            HStack(spacing: 4) {
+                                Circle().fill(Color.orange).frame(width: 6, height: 6)
+                                Text("One-off: ₹\(Int(oneOffTotal))")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(.bottom, 4)
+                        .contentTransition(.numericText())
+                        
                         if let percentage = repository.monthOverMonthPercentage {
                             HStack(spacing: 4) {
                                 Image(systemName: percentage > 0 ? "arrow.up" : "arrow.down")
@@ -102,52 +134,33 @@ struct ExpenseListView: View {
                             .onTapGesture {
                                 navigationManager.navigate(to: .insights, scrollTo: "MonthComparison")
                             }
+                            .padding(.vertical, 4)
                         }
                     }
                     .padding(.vertical, 8)
                     .listRowInsets(EdgeInsets(top: 10, leading: 20, bottom: 10, trailing: 20))
                     .listRowBackground(Color.clear)
+                    // Filter
+                    Picker("Filter by Type", selection: $selectedFilter) {
+                        Text("All").tag(Optional<Expense.ExpenseType>.none)
+                        ForEach(Expense.ExpenseType.allCases, id: \.self) { type in
+                            Text(type.rawValue).tag(Optional(type))
+                        }
+                    }
+                    .pickerStyle(.palette)
+                    .listRowInsets(EdgeInsets(top: 10, leading: 20, bottom: 0, trailing: 20))
+                    .listRowBackground(Color.clear)
+                    .padding(.vertical, 4)    
                 }
                 
                 // Transactions
                 ForEach(groupedExpenses) { group in
                     Section {
                         ForEach(group.expenses) { expense in
-                            HStack(spacing: 16) {
-                                // Leading Icon
-                                ZStack {
-                                    Image(systemName: expense.icon)
-                                        .font(.system(size: 22))
-                                        .foregroundStyle(expense.color)
-                                        .symbolRenderingMode(.monochrome)
+                            TransactionRow(expense: expense)
+                                .onTapGesture {
+                                    expenseToEdit = expense
                                 }
-                                
-                                // Title & Category
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(expense.title)
-                                        .font(.body)
-                                        .fontWeight(.medium)
-                                    
-                                    Text(expense.category)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                
-                                Spacer()
-                                
-                                // Amount & Time
-                                VStack(alignment: .trailing, spacing: 4) {
-                                    Text("₹" + expense.amount.formatted(.number.precision(.fractionLength(0...2))))
-                                        .fontWeight(.semibold)
-                                        .foregroundStyle(.primary)
-                                        .contentTransition(.numericText())
-                                    
-                                    Text(expense.date, format: .dateTime.hour().minute())
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                            .padding(.vertical, 4)
                         }
                         .onDelete { offsets in
                             deleteExpenses(at: offsets, in: group)
@@ -165,6 +178,10 @@ struct ExpenseListView: View {
             .animation(.default, value: repository.expenses)
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
+            .sheet(item: $expenseToEdit) { expense in
+                AddExpenseView(expenseToEdit: expense)
+                    .environmentObject(repository)
+            }
         }
     }
     

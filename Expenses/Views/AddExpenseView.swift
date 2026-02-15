@@ -5,12 +5,15 @@ struct AddExpenseView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var repository: ExpenseRepository
     @Binding var sheetDetent: PresentationDetent
+    var expenseToEdit: Expense?
     
     // State
     @State private var amountString = ""
     @State private var selectedDate = Date()
     @State private var note = ""
     @State private var selectedCategory = "Food"
+    @State private var selectedType: Expense.ExpenseType = .regular
+    @State private var isEditing: Bool = true
     
     enum Field: Hashable {
         case amount
@@ -19,36 +22,48 @@ struct AddExpenseView: View {
     @FocusState private var focusedField: Field?
     
     // Init with default binding for previews
-    init(sheetDetent: Binding<PresentationDetent> = .constant(.medium)) {
+    init(sheetDetent: Binding<PresentationDetent> = .constant(.medium), expenseToEdit: Expense? = nil) {
         _sheetDetent = sheetDetent
+        self.expenseToEdit = expenseToEdit
+        
+        _isEditing = State(initialValue: expenseToEdit == nil)
+        
+        if let expense = expenseToEdit {
+            _amountString = State(initialValue: String(format: "%.0f", expense.amount)) // Remove decimals if .00? Or just use description
+            _selectedDate = State(initialValue: expense.date)
+            _note = State(initialValue: expense.title)
+            _selectedCategory = State(initialValue: expense.category)
+            _selectedType = State(initialValue: expense.type)
+        }
     }
     
-    // Monochromatic SF Symbols for native feel
-    let categories: [(name: String, icon: String, color: Color)] = [
-        ("Food", "fork.knife", Theme.CategoryColors.food),
-        ("Transport", "car", Theme.CategoryColors.transport),
-        ("Shopping", "cart", Theme.CategoryColors.shopping),
-        ("Entertainment", "tv", Theme.CategoryColors.entertainment),
-        ("Health", "heart", Theme.CategoryColors.health),
-        ("Bills", "creditcard", Theme.CategoryColors.bills),
-        ("Misc", "square.grid.2x2", Theme.CategoryColors.misc)
+    // Grid Columns
+    let columns = [
+        GridItem(.adaptive(minimum: 70), spacing: 12)
     ]
     
     var body: some View {
         NavigationStack {
             Form {
+                // ... (Section 1 & 2 unchanged)
                 // Section 1: Large Centered Amount
                 Section {
-                    VStack(spacing: 8) {
-                        HStack(spacing: 4) {
+                    VStack(spacing: 0) {
+                        Text("Amount")
+                            .font(.caption)
+                            .textCase(.uppercase)
+                            .foregroundStyle(.secondary)
+                            .padding(.bottom, 4)
+                        
+                        HStack(spacing: 2) {
                             Text("₹")
-                                .font(.system(size: 52, weight: .semibold, design: .rounded))
+                                .font(.system(size: 40, weight: .semibold, design: .rounded))
                                 .foregroundStyle(.tertiary)
                             
                             TextField("0", text: $amountString)
-                                .font(.system(size: 52, weight: .semibold, design: .rounded))
+                                .font(.system(size: 40, weight: .semibold, design: .rounded))
                                 .foregroundStyle(.primary)
-                                .multilineTextAlignment(.leading)
+                                .multilineTextAlignment(.center)
                                 .keyboardType(.decimalPad)
                                 .focused($focusedField, equals: .amount)
                                 .fixedSize()
@@ -81,15 +96,13 @@ struct AddExpenseView: View {
                         }
                         .scaleEffect(amountString.isEmpty ? 1.0 : 1.05)
                         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: amountString)
-                        
-                        Text("Enter amount")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                    
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 20)
+                    .padding(.vertical, 10)
                     .listRowBackground(Color.clear)
                 }
+                .disabled(!isEditing)
                 
                 // Section 2: Note
                 Section {
@@ -103,60 +116,103 @@ struct AddExpenseView: View {
                 } header: {
                     Text("Note")
                 }
-                
+                .disabled(!isEditing)
+
                 // Section 3: Category
                 Section {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(categories, id: \.name) { cat in
-                                CategoryPill(
-                                    name: cat.name,
-                                    icon: cat.icon,
-                                    isSelected: selectedCategory == cat.name
-                                ) {
-                                    // Haptic Feedback
-                                    if selectedCategory != cat.name {
-                                        let generator = UIImpactFeedbackGenerator(style: .medium)
-                                        generator.impactOccurred()
+                    ScrollViewReader { proxy in
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 30) {
+                                ForEach(Expense.allCategories, id: \.name) { cat in
+                                    CategoryPill(
+                                        name: cat.name,
+                                        icon: cat.icon,
+                                        color: cat.color,
+                                        isSelected: selectedCategory == cat.name
+                                    ) {
+                                        // Haptic Feedback
+                                        if selectedCategory != cat.name {
+                                            let generator = UIImpactFeedbackGenerator(style: .medium)
+                                            generator.impactOccurred()
+                                        }
+                                        
+                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                                            selectedCategory = cat.name
+                                            proxy.scrollTo(cat.name, anchor: .center)
+                                        }
                                     }
-                                    
-                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                                        selectedCategory = cat.name
-                                    }
+                                    .id(cat.name) // Important for ScrollViewReader
                                 }
                             }
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 8)
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 8)
+                        .onAppear {
+                            // Scroll to selected category on load
+                            withAnimation {
+                                proxy.scrollTo(selectedCategory, anchor: .center)
+                            }
+                        }
+                        .onChange(of: selectedCategory) { newValue in
+                            withAnimation {
+                                proxy.scrollTo(newValue, anchor: .center)
+                            }
+                        }
                     }
-                    .listRowInsets(EdgeInsets()) // Full width needed for horizontal scroll
+                    .listRowInsets(EdgeInsets()) // Full width to edges
                     .listRowBackground(Color.clear)
                 } header: {
                     Text("Category")
-                        .padding(.leading, 20) // Re-align header since insets are cleared
                 }
+                .disabled(!isEditing)
                 
-                // Section 4: Date
+                // Section 4: Type & Date
                 Section {
+                    Picker("Type", selection: $selectedType) {
+                        ForEach(Expense.ExpenseType.allCases, id: \.self) { type in
+                            Text(type.rawValue).tag(type)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    
                     DatePicker("Date", selection: $selectedDate, displayedComponents: [.date, .hourAndMinute])
+                } header: {
+                    Text("Details")
                 }
+                .disabled(!isEditing)
             }
-            .navigationTitle("New Expense")
+            // .disabled(!isEditing) // Removed from here to allow scrolling
+            .navigationTitle(expenseToEdit == nil ? "New Expense" : (isEditing ? "Edit Expense" : "Expense Details"))
             .navigationBarTitleDisplayMode(.inline)
             .scrollDismissesKeyboard(.interactively)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
+                    Button(isEditing ? "Cancel" : "Close") {
+                        if isEditing && expenseToEdit != nil {
+                            withAnimation {
+                                resetState()
+                            }
+                        } else {
+                            dismiss()
+                        }
                     }
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        saveExpense()
+                    if isEditing {
+                        Button(expenseToEdit != nil ? "Update" : "Save") {
+                            saveExpense()
+                        }
+                        .disabled(Double(amountString) == nil || Double(amountString) == 0)
+                        .bold()
+                    } else {
+                        Button("Edit") {
+                            withAnimation {
+                                isEditing = true
+                                focusedField = .amount
+                            }
+                        }
                     }
-                    .disabled(Double(amountString) == nil || Double(amountString) == 0)
-                    .bold()
                 }
                 
                 ToolbarItemGroup(placement: .keyboard) {
@@ -167,7 +223,9 @@ struct AddExpenseView: View {
                 }
             }
             .onAppear {
-                focusedField = .amount
+                if isEditing {
+                    focusedField = .amount
+                }
             }
         }
         .presentationDragIndicator(.visible)
@@ -183,10 +241,32 @@ struct AddExpenseView: View {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
         
-        let expense = Expense(id: nil, title: titleToUse, amount: amountValue, date: selectedDate, category: selectedCategory)
-        repository.addExpense(expense)
+        if let existingExpense = expenseToEdit {
+             var updatedExpense = existingExpense
+             updatedExpense.title = titleToUse
+             updatedExpense.amount = amountValue
+             updatedExpense.date = selectedDate
+             updatedExpense.category = selectedCategory
+             updatedExpense.type = selectedType
+             
+             repository.update(expense: updatedExpense)
+        } else {
+             let expense = Expense(id: nil, title: titleToUse, amount: amountValue, date: selectedDate, category: selectedCategory, type: selectedType)
+             repository.addExpense(expense)
+        }
         
         dismiss()
+    }
+    
+    private func resetState() {
+        guard let expense = expenseToEdit else { return }
+        amountString = String(format: "%.0f", expense.amount)
+        selectedDate = expense.date
+        note = expense.title
+        selectedCategory = expense.category
+        selectedType = expense.type
+        isEditing = false
+        focusedField = nil
     }
 }
 
@@ -199,6 +279,7 @@ struct AddExpenseView: View {
 struct CategoryPill: View {
     let name: String
     let icon: String
+    let color: Color
     let isSelected: Bool
     let action: () -> Void
     
@@ -207,18 +288,24 @@ struct CategoryPill: View {
     
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 6) {
-                Image(systemName: icon)
-                    .symbolEffect(.bounce, value: animateTrigger)
+            VStack(spacing: 4) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(isSelected ? color : Color.clear)
+                        .frame(width: 44, height: 44)
+                    
+                    Image(systemName: icon)
+                        .font(.system(size: 20))
+                        .foregroundStyle(isSelected ? .white : color.opacity(0.4))
+                        .symbolEffect(.bounce, value: animateTrigger)
+                }
+                
                 Text(name)
+                    .font(.system(size: 10))
+                    .fontWeight(.regular)
+                    .foregroundStyle(isSelected ? .primary : .secondary)
             }
-            .font(.system(size: 15, weight: .medium))
-            .padding(.vertical, 8)
-            .padding(.horizontal, 16)
-            .background(isSelected ? AnyShapeStyle(Theme.getAccentColor()) : AnyShapeStyle(.ultraThinMaterial), in: Capsule())
-            .foregroundStyle(isSelected ? .white : .primary)
-            .scaleEffect(isSelected ? 1.05 : 1.0)
-            .shadow(color: isSelected ? Theme.getAccentColor().opacity(0.3) : .clear, radius: 4, x: 0, y: 2)
+            .scaleEffect(isSelected ? 1.1 : 1.0)
         }
         .buttonStyle(.plain)
         .onChange(of: isSelected) { oldValue, newValue in

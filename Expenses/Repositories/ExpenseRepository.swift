@@ -28,8 +28,8 @@ class ExpenseRepository: ObservableObject {
         if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" || FirebaseApp.app() == nil {
             self.expenses = [
                 Expense.example,
-                Expense(id: "2", title: "Uber", amount: 250.0, date: Date().addingTimeInterval(-86400), category: "Transport"),
-                Expense(id: "3", title: "Groceries", amount: 1200.0, date: Date().addingTimeInterval(-172800), category: "Shopping")
+                Expense(id: "2", title: "Uber", amount: 250.0, date: Date().addingTimeInterval(-86400), category: "Transport", type: .oneOff),
+                Expense(id: "3", title: "Groceries", amount: 1200.0, date: Date().addingTimeInterval(-172800), category: "Shopping", type: .regular)
             ]
             calculateCurrentMonthTotal()
             return
@@ -120,6 +120,18 @@ class ExpenseRepository: ObservableObject {
             print("Error adding expense: \(error)")
             self.errorMessage = "Failed to add expense: \(error.localizedDescription)"
         }
+        }
+    
+    func update(expense: Expense) {
+        guard let expenseID = expense.id else { return }
+        
+        do {
+            try db.collection("users").document(userId).collection("expenses").document(expenseID).setData(from: expense)
+            invalidateCache(for: expense.date)
+        } catch {
+            print("Error updating expense: \(error)")
+            self.errorMessage = "Failed to update expense: \(error.localizedDescription)"
+        }
     }
     
     func deleteExpense(at offsets: IndexSet) {
@@ -152,7 +164,7 @@ class ExpenseRepository: ObservableObject {
             print("Preview Mode: Returning mock data for \(monthID)")
             // Return some mock data for preview
             let mockExpenses = (0..<5).map { i in
-                Expense(id: "\(i)", title: "Expense \(i)", amount: Double(i * 100 + 50), date: Date(), category: ["Food", "Transport"].randomElement() ?? "Food")
+                Expense(id: "\(i)", title: "Expense \(i)", amount: Double(i * 100 + 50), date: Date(), category: ["Food", "Transport"].randomElement() ?? "Food", type: .oneOff)
             }
             completion(mockExpenses)
             return

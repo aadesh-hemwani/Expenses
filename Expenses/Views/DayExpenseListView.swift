@@ -4,47 +4,20 @@ struct DayExpenseListView: View {
     let date: Date
     let expenses: [Expense]
     @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var repository: ExpenseRepository
+    @State private var expenseToEdit: Expense?
     
     var body: some View {
         NavigationStack {
             List {
                 Section {
                     ForEach(expenses) { expense in
-                        HStack(spacing: 16) {
-                            // Leading Icon
-                            ZStack {
-                                Image(systemName: expense.icon)
-                                    .font(.system(size: 22))
-                                    .foregroundStyle(expense.color)
-                                    .symbolRenderingMode(.hierarchical)
+                        TransactionRow(expense: expense)
+                            .onTapGesture {
+                                expenseToEdit = expense
                             }
-                            
-                            // Title & Category
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(expense.title)
-                                    .font(.body)
-                                    .fontWeight(.medium)
-                                
-                                Text(expense.category)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            
-                            Spacer()
-                            
-                            // Amount & Time
-                            VStack(alignment: .trailing, spacing: 4) {
-                                Text("₹" + expense.amount.formatted(.number.precision(.fractionLength(0...2))))
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(.primary)
-                                
-                                Text(expense.date, format: .dateTime.hour().minute())
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        .padding(.vertical, 4)
                     }
+                    .onDelete(perform: deleteExpenses)
                 }
             }
             .listStyle(.insetGrouped)
@@ -57,6 +30,17 @@ struct DayExpenseListView: View {
                     }
                 }
             }
+            }
+            .sheet(item: $expenseToEdit) { expense in
+                AddExpenseView(expenseToEdit: expense)
+                    .environmentObject(repository)
+            }
+        }
+    
+    private func deleteExpenses(at offsets: IndexSet) {
+        offsets.forEach { index in
+            let expenseToDelete = expenses[index]
+            repository.delete(expense: expenseToDelete)
         }
     }
 }
