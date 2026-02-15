@@ -67,62 +67,81 @@ struct ExpenseListView: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Custom Header
-            VStack(alignment: .leading, spacing: 16) {
-                Text(currentMonthYear)
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .foregroundColor(.secondary)
-                    .tracking(2)
-                    .padding(.horizontal)
-                    .padding(.top, 10)
-                
-                CreditCardView(
-                    totalAmount: currentMonthTotal,
-                    name: authManager.user?.displayName ?? "Guest User"
-                )
-                .padding(.horizontal)
-            }
-            .padding(.bottom, 20)
-            .background(Color.clear) // Clear background for card to stand out
-            
-            // Transaction List
+        NavigationStack {
             List {
+                // Header Section
+                Section {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(currentMonthYear)
+                            .font(.title2)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.secondary)
+                        
+                        HStack(alignment: .lastTextBaseline, spacing: 0) {
+                            Text("₹\(formattedTotal.whole)")
+                                .font(.system(size: 40, weight: .semibold, design: .rounded))
+                                .foregroundStyle(.primary)
+                            
+                            Text(formattedTotal.fraction)
+                                .font(.system(size: 24, weight: .regular, design: .rounded))
+                                .foregroundStyle(.tertiary)
+                        }
+                        .contentTransition(.numericText())
+                        
+                        if let percentage = repository.monthOverMonthPercentage {
+                            HStack(spacing: 4) {
+                                Image(systemName: percentage > 0 ? "arrow.up.right" : "arrow.down.right")
+                                Text("\(abs(Int(percentage)))% vs same time last month")
+                            }
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            // Red for increase (spending more), Green for decrease (spending less)
+                            .foregroundStyle(percentage > 0 ? .red : .green)
+                        }
+                    }
+                    .padding(.vertical, 8)
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                }
+                
+                // Transactions
                 ForEach(groupedExpenses) { group in
-                    Section(header: Text(group.title)) {
+                    Section {
                         ForEach(group.expenses) { expense in
-                            HStack(spacing: 12) {
-                                // Category Icon
+                            HStack(spacing: 16) {
+                                // Leading Icon
                                 ZStack {
                                     Circle()
                                         .fill(expense.color.opacity(0.1))
-                                        .frame(width: 44, height: 44)
+                                        .frame(width: 40, height: 40)
                                     Image(systemName: expense.icon)
                                         .font(.system(size: 18))
-                                        .foregroundColor(expense.color)
+                                        .foregroundStyle(expense.color)
+                                        .symbolRenderingMode(.hierarchical)
                                 }
                                 
+                                // Title & Category
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(expense.title)
-                                        .font(.headline)
+                                        .font(.body)
+                                        .fontWeight(.medium)
+                                    
                                     Text(expense.category)
-                                        .font(.caption) // Smaller font for category
-                                        .foregroundColor(.secondary)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
                                 }
                                 
                                 Spacer()
                                 
+                                // Amount & Time
                                 VStack(alignment: .trailing, spacing: 4) {
-                                    // Amount with Rupee
                                     Text("₹" + expense.amount.formatted(.number.precision(.fractionLength(0...2))))
-                                        .font(.headline)
-                                        .fontWeight(.bold) // Bold amount
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(.primary)
                                     
-                                    // Time
                                     Text(expense.date, format: .dateTime.hour().minute())
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
                                 }
                             }
                             .padding(.vertical, 4)
@@ -130,13 +149,19 @@ struct ExpenseListView: View {
                         .onDelete { offsets in
                             deleteExpenses(at: offsets, in: group)
                         }
+                    } header: {
+                        Text(group.title)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.secondary)
+                            .textCase(nil) // Prevent uppercase default
                     }
                 }
             }
-            .listStyle(InsetGroupedListStyle())
+            .listStyle(.insetGrouped)
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
         }
-        .navigationTitle("") // Remove default large title to use custom header
-        .navigationBarTitleDisplayMode(.inline)
     }
     
     // Helper to delete from specific group

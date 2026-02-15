@@ -5,195 +5,113 @@ struct ProfileView: View {
     @EnvironmentObject var authManager: AuthManager
     
     // Appearance State Persisted
-    @AppStorage("isDarkMode") private var isDarkMode = false
-    @AppStorage("accumulatedColor") private var accentColorName = "Indigo" // Renamed to avoid reserved word conflict
-    
-    let accentColors: [(name: String, color: Color)] = [
-        ("Indigo", .indigo),
-        ("Teal", .teal),
-        ("Pink", .pink),
-        ("Orange", .orange),
-        ("Purple", .purple),
-        ("Cyan", .cyan)
-    ]
+    @AppStorage("accumulatedColor") private var accentColorName = "Indigo"
+    @State private var monthlyBudget: Double = 0.0
+    @FocusState private var isBudgetFocused: Bool
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Profile Header
-                    HStack {
-                        Text("Profile")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                        Spacer()
-                    }
-                    .padding(.horizontal)
-                    .padding(.top)
-                    
-                    // User Card
-                    VStack(spacing: 16) {
-                        ZStack(alignment: .bottomTrailing) {
-                            if let photoURL = authManager.user?.photoURL {
-                                AsyncImage(url: photoURL) { image in
-                                    image.resizable()
-                                } placeholder: {
-                                    Image(systemName: "person.circle.fill")
-                                        .resizable()
-                                        .foregroundColor(.gray)
-                                }
-                                .frame(width: 80, height: 80)
-                                .clipShape(Circle())
-                            } else {
-                                Image(systemName: "person.circle.fill") // Fallback
+            List {
+                // SECTION 1: IDENTITY
+                Section {
+                    HStack(spacing: 16) {
+                        if let photoURL = authManager.user?.photoURL {
+                            AsyncImage(url: photoURL) { image in
+                                image.resizable()
+                            } placeholder: {
+                                Image(systemName: "person.circle.fill")
                                     .resizable()
-                                    .frame(width: 80, height: 80)
-                                    .foregroundColor(.gray)
+                                    .foregroundStyle(.gray)
                             }
-                            
-                            Circle()
-                                .fill(Color.green)
-                                .frame(width: 20, height: 20)
-                                .overlay(Circle().stroke(Color(uiColor: .systemBackground), lineWidth: 2))
-                                .offset(x: 0, y: 0)
+                            .frame(width: 60, height: 60)
+                            .clipShape(Circle())
+                        } else {
+                            Image(systemName: "person.circle.fill")
+                                .resizable()
+                                .frame(width: 60, height: 60)
+                                .foregroundStyle(.gray)
                         }
                         
-                        VStack(spacing: 4) {
+                        VStack(alignment: .leading, spacing: 4) {
                             Text(authManager.user?.displayName ?? "Guest User")
-                                .font(.title3)
-                                .fontWeight(.bold)
-                                .foregroundColor(.primary)
+                                .font(.headline)
+                                .foregroundStyle(.primary)
                             
                             Text(authManager.user?.email ?? "No email linked")
                                 .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        // Fake Admin Dashboard Button
-                        Button(action: {}) {
-                            Text("Admin Dashboard")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
-                                .background(Color("AccentColor").opacity(0.1)) // Dynamic accent
-                                .foregroundColor(.primary)
-                                .cornerRadius(12)
-                        }
-                        
-                        // Google Verified Badge
-                        HStack(spacing: 4) {
-                            Image(systemName: "checkmark.shield.fill")
-                            Text("Google Verified")
-                        }
-                        .font(.caption)
-                        .foregroundColor(.green)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.green.opacity(0.1))
-                        .cornerRadius(20)
-                    }
-                    .padding(24)
-                    .frame(maxWidth: .infinity)
-                    .background(Color(.secondarySystemGroupedBackground))
-                    .cornerRadius(24)
-                    .padding(.horizontal)
-                    .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
-                    
-                    // Appearance Card
-                    VStack(alignment: .leading, spacing: 20) {
-                        HStack {
-                            Image(systemName: "paintpalette.fill")
-                                .font(.title2)
-                                .foregroundColor(.indigo)
-                                .frame(width: 40, height: 40)
-                                .background(Color.indigo.opacity(0.1))
-                                .cornerRadius(10)
-                            
-                            Text("Appearance")
-                                .font(.headline)
-                                .fontWeight(.semibold)
-                            
-                            Spacer()
-                        }
-                        
-                        // Dark Mode Toggle
-                        HStack {
-                            Image(systemName: "moon.fill")
-                                .foregroundColor(.yellow)
-                                .frame(width: 32, height: 32)
-                                .background(Color.yellow.opacity(0.1))
-                                .clipShape(Circle())
-                            
-                            VStack(alignment: .leading) {
-                                Text("Dark Mode")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                Text("Adjust the appearance to reduce glare.")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            
-                            Spacer()
-                            
-                            Toggle("", isOn: $isDarkMode)
-                                .labelsHidden()
-                        }
-                        
-                        Divider()
-                        
-                        // Accent Color Picker
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("ACCENT COLOR • \(accentColorName.uppercased())")
-                                .font(.caption)
-                                .fontWeight(.bold)
-                                .foregroundColor(.secondary)
-                            
-                            HStack(spacing: 16) {
-                                ForEach(accentColors, id: \.name) { item in
-                                    Circle()
-                                        .fill(item.color)
-                                        .frame(width: 40, height: 40)
-                                        .overlay(
-                                            Image(systemName: "checkmark")
-                                                .foregroundColor(.white)
-                                                .opacity(accentColorName == item.name ? 1 : 0)
-                                        )
-                                        .onTapGesture {
-                                            withAnimation {
-                                                accentColorName = item.name
-                                            }
-                                        }
-                                }
-                            }
+                                .foregroundStyle(.secondary)
                         }
                     }
-                    .padding(24)
-                    .frame(maxWidth: .infinity)
-                    .background(Color(.secondarySystemGroupedBackground))
-                    .cornerRadius(24)
-                    .padding(.horizontal)
-                    .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
-                    
-                    // Sign Out Button (Optional but useful)
-                    Button(action: {
-                        authManager.signOut()
-                    }) {
-                        Text("Sign Out")
-                            .font(.headline)
-                            .foregroundColor(.red)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.red.opacity(0.1))
-                            .cornerRadius(16)
-                    }
-                    .padding(.horizontal)
+                    .padding(.vertical, 4)
                 }
-                .padding(.bottom, 20)
+                
+                // SECTION 2: APPEARANCE
+                Section {
+                    
+                    NavigationLink {
+                        AccentColorView()
+                    } label: {
+                        HStack {
+                            Text("Accent Color")
+                            Spacer()
+                            Text(accentColorName)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                } header: {
+                    Text("Appearance")
+                }
+                
+                // SECTION 3: BUDGET SETTINGS
+                Section {
+                    HStack {
+                        Text("Monthly Budget")
+                        Spacer()
+                        TextField("Amount", value: $monthlyBudget, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(maxWidth: 100)
+                            .focused($isBudgetFocused)
+                            .onSubmit {
+                                authManager.updateMonthlyBudget(amount: monthlyBudget)
+                            }
+                    }
+                } header: {
+                    Text("Budget Settings")
+                }
+                .toolbar {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button("Done") {
+                            isBudgetFocused = false
+                            authManager.updateMonthlyBudget(amount: monthlyBudget)
+                        }
+                    }
+                }
+                
+                // SECTION 3: ACCOUNT ACTIONS
+                Section {
+                    Button(role: .destructive) {
+                        authManager.signOut()
+                    } label: {
+                        Text("Sign Out")
+                            .frame(maxWidth: .infinity)
+                    }
+                }
             }
-            .background(Color(.systemGroupedBackground))
-            .navigationTitle("")
-            .navigationBarHidden(true)
+            .listStyle(.insetGrouped)
+            .navigationTitle("Profile")
+            .navigationBarTitleDisplayMode(.large)
+            .onAppear {
+                if let budget = authManager.appUser?.monthlyBudgetCap {
+                    monthlyBudget = budget
+                }
+            }
+            .onChange(of: authManager.appUser) { oldUser, newUser in
+                if let budget = newUser?.monthlyBudgetCap {
+                    monthlyBudget = budget
+                }
+            }
         }
     }
 }

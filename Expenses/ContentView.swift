@@ -1,91 +1,85 @@
 import SwiftUI
 
 // Tab enum for navigation
-enum Tab: String, CaseIterable {
+enum Tabs: String, CaseIterable {
     case home = "Home"
     case history = "History"
     case insights = "Insights"
     case profile = "Profile"
+    case add = "Add"
 }
 
 struct ContentView: View {
     @StateObject private var repository: ExpenseRepository
     @EnvironmentObject var authManager: AuthManager
     @State private var showingAddExpense = false
-    @State private var selectedTab: Tab = .home
+    @State private var selectedTab: Tabs = .history
     
     // Appearance State (Read Only here, modifiers applied in body)
-    @AppStorage("isDarkMode") private var isDarkMode = false
     @AppStorage("accumulatedColor") private var accentColorName = "Indigo"
     
     init(userId: String) {
         _repository = StateObject(wrappedValue: ExpenseRepository(userId: userId))
         
-        // Standard Appearance - Fully Transparent
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithTransparentBackground()
-        appearance.backgroundEffect = nil // No blur
-        appearance.shadowColor = .clear // No shadow
+//        // Standard Appearance - Fully Transparent
+//        let appearance = UINavigationBarAppearance()
+//        appearance.configureWithTransparentBackground()
+//        appearance.backgroundEffect = nil // No blur
+//        appearance.shadowColor = .clear // No shadow
+//        
+//        UINavigationBar.appearance().standardAppearance = appearance
+//        UINavigationBar.appearance().compactAppearance = appearance
+//        UINavigationBar.appearance().scrollEdgeAppearance = appearance
         
-        UINavigationBar.appearance().standardAppearance = appearance
-        UINavigationBar.appearance().compactAppearance = appearance
-        UINavigationBar.appearance().scrollEdgeAppearance = appearance
-        
-        // Tab Bar Appearance - Liquid Glass
-        let tabAppearance = UITabBarAppearance()
-        tabAppearance.configureWithTransparentBackground()
-        tabAppearance.backgroundEffect = UIBlurEffect(style: .systemMaterial) // Heavier glass
-        tabAppearance.shadowColor = .clear
-        
-        UITabBar.appearance().standardAppearance = tabAppearance
-        UITabBar.appearance().scrollEdgeAppearance = tabAppearance
     }
     
     var body: some View {
         TabView(selection: $selectedTab) {
-            NavigationStack {
+
+            Tab("Home", systemImage: "house", value: .home) {
                 ExpenseListView()
-                    // Restore the "plus" button to the native toolbar
-                    .toolbar {
-                        ToolbarItem(placement: .primaryAction) {
-                            Button {
-                                showingAddExpense = true
-                            } label: {
-                                Image(systemName: "plus")
-                            }
-                        }
-                    }
             }
-            .tabItem {
-                Label("Home", systemImage: "house")
+            
+            Tab("History", systemImage: "calendar", value: .history) {
+                HistoryView()
             }
-            .tag(Tab.home)
             
-            HistoryView()
-                .tabItem {
-                    Label("History", systemImage: "calendar")
-                }
-                .tag(Tab.history)
+            Tab("Insights", systemImage: "chart.bar", value: .insights) {
+                InsightsView()
+            }
             
-            InsightsView()
-                .tabItem {
-                    Label("Insights", systemImage: "chart.bar")
-                }
-                .tag(Tab.insights)
+            Tab("Profile", systemImage: "person", value: .profile) {
+                ProfileView()
+            }
             
-            ProfileView()
-                .tabItem {
-                    Label("Profile", systemImage: "person")
-                }
-                .tag(Tab.profile)
+            Tab("Add", systemImage: "plus", value: .add, role: TabRole.search) {
+                Color.clear
+            }
+            
+        }
+        .onChange(of: selectedTab) { oldValue, newValue in
+            if newValue == .add {
+                showingAddExpense = true
+                selectedTab = oldValue
+            }
         }
         .sheet(isPresented: $showingAddExpense) {
             AddExpenseView()
                 .environmentObject(repository)
         }
         .environmentObject(repository)
-        .tint(getAccentColor()) // Dynamic Accent Color
-        .preferredColorScheme(isDarkMode ? .dark : .light) // Force Dark/Light Mode
+//        .tint(getAccentColor()) // Dynamic Accent Color
+        .alert(item: Binding<IdentifiableString?>(
+            get: { repository.errorMessage.map { IdentifiableString(value: $0) } },
+            set: { _ in repository.errorMessage = nil }
+        )) { error in
+            Alert(title: Text("Error"), message: Text(error.value), dismissButton: .default(Text("OK")))
+        }
+    }
+    
+    struct IdentifiableString: Identifiable {
+        let id = UUID()
+        let value: String
     }
     
     // Helper to map stored string to Color

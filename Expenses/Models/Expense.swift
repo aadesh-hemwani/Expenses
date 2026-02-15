@@ -41,5 +41,6 @@ struct Expense: Identifiable, Codable {
         default: return .gray
         }
     }
+    static let example = Expense(id: "1", title: "Lunch", amount: 450.0, date: Date(), category: "Food")
 }
 

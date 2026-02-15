@@ -5,14 +5,11 @@ struct AddExpenseView: View {
     @EnvironmentObject var repository: ExpenseRepository
     
     // State
-    @State private var amountString = "0"
+    @State private var amountString = ""
     @State private var selectedDate = Date()
     @State private var note = ""
     @State private var selectedCategory = "Food"
-    
-    // Pickers
-    @State private var showDatePicker = false
-    @State private var showTimePicker = false
+    @FocusState private var isAmountFocused: Bool
     
     let categories: [(name: String, icon: String, color: Color)] = [
         ("Food", "fork.knife", .orange),
@@ -21,213 +18,133 @@ struct AddExpenseView: View {
         ("Entertainment", "tv.fill", .pink),
         ("Health", "heart.fill", .red),
         ("Bills", "doc.text.fill", .yellow),
-        ("Other", "ellipsis.circle.fill", .gray)
+        ("Misc", "ellipsis.circle.fill", .gray)
     ]
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
-                // Top Pills (Date & Time)
-                HStack(spacing: 10) {
-                    Button(action: { showDatePicker.toggle() }) {
-                        HStack {
-                            Image(systemName: "calendar")
-                            Text(formatDate(selectedDate))
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(20)
-                    }
-                    
-                    Button(action: { showTimePicker.toggle() }) {
-                        HStack {
-                            Image(systemName: "clock")
-                            Text(formatTime(selectedDate))
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(20)
-                    }
-                    
-                    Spacer()
-                    
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title2)
-                            .foregroundColor(.gray)
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.top, 20)
-                
-                Spacer()
-                
-                // Category Name
-                Text(selectedCategory.uppercased())
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .foregroundColor(.secondary)
-                    .tracking(2)
-                
-                // Amount Display
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text("₹")
-                        .font(.system(size: 40, weight: .regular))
-                        .foregroundColor(.gray)
-                    
-                    Text(amountString)
-                        .font(.system(size: 80, weight: .bold))
-                        .foregroundColor(.primary)
-                }
-                
-                // Category Selector
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 20) {
-                        ForEach(categories, id: \.name) { cat in
-                            VStack(spacing: 8) {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                        .fill(selectedCategory == cat.name ? cat.color.opacity(0.2) : Color(.systemGray6))
-                                        .frame(width: 60, height: 60)
-                                    
-                                    Image(systemName: cat.icon)
-                                        .font(.title2)
-                                        .foregroundColor(selectedCategory == cat.name ? cat.color : .gray)
+            Form {
+                // AMOUNT SECTION
+                Section {
+                    HStack(spacing: 4) {
+                        Spacer()
+                        Text("₹")
+                            // Increased size
+                            .font(.system(size: 64, weight: .semibold, design: .rounded))
+                            .foregroundStyle(.secondary)
+                        
+                        TextField("0", text: $amountString)
+                            // Increased size
+                            .font(.system(size: 64, weight: .semibold, design: .rounded))
+                            .keyboardType(.decimalPad)
+                            .focused($isAmountFocused)
+                            .multilineTextAlignment(.leading)
+                            .fixedSize()
+                            // Restrict to numbers and one decimal point
+                            .onChange(of: amountString) { oldValue, newValue in
+                                let filtered = newValue.filter { "0123456789.".contains($0) }
+                                if filtered != newValue {
+                                    amountString = filtered
                                 }
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                        .stroke(selectedCategory == cat.name ? cat.color : Color.clear, lineWidth: 2)
-                                )
-                                
+                                // Ensure only one decimal point
+                                if let firstIndex = amountString.firstIndex(of: "."),
+                                   let secondIndex = amountString[amountString.index(after: firstIndex)...].firstIndex(of: ".") {
+                                    amountString = String(amountString[..<secondIndex])
+                                }
+                            }
+                        Spacer()
+                    }
+                    .padding(.vertical, 0) // No vertical padding
+                    .listRowInsets(EdgeInsets()) // Remove row spacing
+                    .listRowBackground(Color.clear)
+                }
+
+                // NOTE SECTION
+                Section {
+                    TextField("Add a note", text: $note)
+                } header: {
+                    Text("Note")
+                }
+                
+                // CATEGORY SECTION
+                Section {
+                    ForEach(categories, id: \.name) { cat in
+                        Button {
+                            withAnimation {
+                                selectedCategory = cat.name
+                            }
+                        } label: {
+                            HStack {
+                                Image(systemName: cat.icon)
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(.white)
+                                    .frame(width: 29, height: 29)
+                                    .background(cat.color)
+                                    .cornerRadius(6)
                                 Text(cat.name)
-                                    .font(.caption)
-                                    .foregroundColor(selectedCategory == cat.name ? .primary : .secondary)
-                            }
-                            .onTapGesture {
-                                withAnimation(.spring()) {
-                                    selectedCategory = cat.name
+                                    .foregroundStyle(Color.primary)
+                                Spacer()
+                                if selectedCategory == cat.name {
+                                    Image(systemName: "checkmark")
+                                        .foregroundStyle(.blue)
+                                        .fontWeight(.semibold)
                                 }
                             }
                         }
                     }
-                    .padding(.horizontal)
+                } header: {
+                    Text("Category")
                 }
-                .frame(height: 100)
                 
-                // Note Input
-                TextField("Add note...", text: $note)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
-                    .padding(.horizontal)
-                
-                Spacer()
-                
-                // Numeric Keypad
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 20) {
-                    ForEach(1...9, id: \.self) { number in
-                        Button(action: { appendNumber("\(number)") }) {
-                            Text("\(number)")
-                                .font(.title)
-                                .fontWeight(.medium)
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .foregroundColor(.primary)
-                        }
-                    }
-                    
-                    Button(action: { appendNumber(".") }) {
-                        Text(".")
-                            .font(.title)
-                            .fontWeight(.medium)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .foregroundColor(.primary)
-                    }
-                    
-                    Button(action: { appendNumber("0") }) {
-                        Text("0")
-                            .font(.title)
-                            .fontWeight(.medium)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .foregroundColor(.primary)
-                    }
-                    
-                    Button(action: { removeLastDigit() }) {
-                        Image(systemName: "delete.left.fill")
-                            .font(.title2)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .foregroundColor(.gray)
+                // DATE & TIME SECTION
+                Section {
+                    DatePicker("Date", selection: $selectedDate, displayedComponents: .date)
+                    DatePicker("Time", selection: $selectedDate, displayedComponents: .hourAndMinute)
+                } header: {
+                    Text("Date & Time")
+                }
+            }
+            .navigationTitle("New Expense")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
                     }
                 }
-                .padding(.horizontal)
-                .padding(.bottom, 10)
                 
-                // Add Button
-                Button(action: saveExpense) {
-                    Text("Add Expense")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(amountString == "0" ? Color.gray : Color.black)
-                        .cornerRadius(30)
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        saveExpense()
+                    }
+                    .disabled(Double(amountString) == nil || Double(amountString) == 0)
+                    .bold()
                 }
-                .disabled(amountString == "0")
-                .padding(.horizontal)
-                .padding(.bottom)
+                
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        isAmountFocused = false
+                    }
+                }
+            }
+            .onAppear {
+                isAmountFocused = true
             }
         }
-        .sheet(isPresented: $showDatePicker) {
-            DatePicker("", selection: $selectedDate, displayedComponents: .date)
-                .datePickerStyle(.graphical)
-                .presentationDetents([.medium])
-        }
-        .sheet(isPresented: $showTimePicker) {
-            DatePicker("", selection: $selectedDate, displayedComponents: .hourAndMinute)
-                .datePickerStyle(.wheel)
-                .presentationDetents([.height(250)])
-        }
-        .navigationBarHidden(true)
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
     }
     
     // Helpers
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM d, yyyy"
-        return formatter.string(from: date)
-    }
-    
-    private func formatTime(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
-    }
-    
-    private func appendNumber(_ number: String) {
-        if amountString == "0" && number != "." {
-            amountString = number
-        } else {
-            if number == "." && amountString.contains(".") { return }
-            if amountString.count < 10 {
-                amountString += number
-            }
-        }
-    }
-    
-    private func removeLastDigit() {
-        if amountString.count > 1 {
-            amountString.removeLast()
-        } else {
-            amountString = "0"
-        }
-    }
-    
     private func saveExpense() {
         guard let amountValue = Double(amountString), amountValue > 0 else { return }
         
         // Use 'note' as the title, as per data model mapping
         let titleToUse = note.isEmpty ? selectedCategory : note
+        
+        // Ensure date components are preserved/combined correctly if needed, 
+        // though typically DatePicker handles this well enough for simple use cases.
         
         let expense = Expense(id: nil, title: titleToUse, amount: amountValue, date: selectedDate, category: selectedCategory)
         repository.addExpense(expense)
