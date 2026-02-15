@@ -136,7 +136,7 @@ struct SummaryCard: View {
                         Text("\(abs(Int(trend)))% from last month")
                     }
                     .font(.subheadline)
-                    .foregroundStyle(trend > 0 ? .red : .green) // Red for spending increase
+                    .foregroundStyle(trend > 0 ? Color(.systemRed) : Color(.systemGreen)) // Red for spending increase
                 } else {
                     Text("No change from last month")
                         .font(.subheadline)
@@ -175,7 +175,7 @@ struct BudgetCard: View {
                     Text("₹\(Int(total))")
                         .font(.title2)
                         .fontWeight(.semibold)
-                        .foregroundStyle(isOverBudget ? .red : .primary)
+                        .foregroundStyle(isOverBudget ? Color(.systemRed) : .primary)
                     
                     Text("of ₹\(Int(budget))")
                         .font(.subheadline)
@@ -185,14 +185,14 @@ struct BudgetCard: View {
                 }
                 
                 ProgressView(value: min(progress, 1.0))
-                    .tint(isOverBudget ? .red : Theme.getAccentColor()) // Use Theme color for normal state
+                    .tint(isOverBudget ? Color(.systemRed) : Theme.getAccentColor()) // Use Theme color for normal state
                     .scaleEffect(x: 1, y: 1.5, anchor: .center) // Slightly thicker track
             }
             
             HStack {
                 if isOverBudget {
                     Text("Over budget by ₹\(Int(total - budget))")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(Color(.systemRed))
                 } else {
                     Text("₹\(Int(budget - total)) remaining")
                         .foregroundStyle(.secondary)
@@ -457,9 +457,9 @@ struct HighlightsCard: View {
             }
             
             if trend > 0 {
-                HighlightRow(icon: "arrow.up.right", color: .red, text: "Spending increased \(Int(abs(trend)))%")
+                HighlightRow(icon: "arrow.up.right", color: Color(.systemRed), text: "Spending increased \(Int(abs(trend)))%")
             } else if trend < 0 {
-                HighlightRow(icon: "arrow.down.right", color: .green, text: "Spending decreased \(Int(abs(trend)))%")
+                HighlightRow(icon: "arrow.down.right", color: Color(.systemGreen), text: "Spending decreased \(Int(abs(trend)))%")
             }
             
             if let top = topCategory {
@@ -537,7 +537,7 @@ struct MonthComparisonCard: View {
             }
             .chartForegroundStyleScale([
                 "Current": Theme.getAccentColor(),
-                "Last Month": .gray.opacity(0.5)
+                "Last Month": Color(.secondaryLabel)
             ])
             .chartLegend(.hidden)
             .chartXAxis {
@@ -565,7 +565,7 @@ struct MonthComparisonCard: View {
                     .foregroundStyle(.secondary)
                 
                 Circle()
-                    .fill(Color.gray.opacity(0.5))
+                    .fill(Color(.secondaryLabel))
                     .frame(width: 8, height: 8)
                 Text("Last Month")
                     .font(.caption)

@@ -11,7 +11,7 @@ struct ExpenseListView: View {
     private var currentMonthYear: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMMM yyyy"
-        return formatter.string(from: Date()).uppercased()
+        return formatter.string(from: Date())
     }
     
     // Computed property for total expenses of current month
@@ -71,40 +71,41 @@ struct ExpenseListView: View {
         NavigationStack {
             List {
                 // Header Section
+                // Header Section
+                // Header Section
                 Section {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(currentMonthYear)
-                            .font(.title2)
+                            .font(.subheadline)
                             .fontWeight(.medium)
-                            .foregroundStyle(.secondary)
-                        
+                            .foregroundStyle(Color(.secondaryLabel))
+
                         HStack(alignment: .lastTextBaseline, spacing: 0) {
-                            Text("₹\(formattedTotal.whole)")
-                                .font(.system(size: 40, weight: .semibold, design: .rounded))
-                                .foregroundStyle(.primary)
+                            Text("₹" + formattedTotal.whole)
+                                .font(.system(size: 40, weight: .bold))
+                                .foregroundStyle(Color(.label))
                             
                             Text(formattedTotal.fraction)
-                                .font(.system(size: 24, weight: .regular, design: .rounded))
-                                .foregroundStyle(.tertiary)
+                                .font(.system(size: 24, weight: .light))
+                                .foregroundStyle(Color(.secondaryLabel))
                         }
                         .contentTransition(.numericText())
                         
                         if let percentage = repository.monthOverMonthPercentage {
                             HStack(spacing: 4) {
-                                Image(systemName: percentage > 0 ? "arrow.up.right" : "arrow.down.right")
-                                Text("\(abs(Int(percentage)))% vs same time last month")
+                                Image(systemName: percentage > 0 ? "arrow.up" : "arrow.down")
+                                Text("\(abs(Int(percentage)))% compared to last month")
                             }
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            // Red for increase (spending more), Green for decrease (spending less)
-                            .foregroundStyle(percentage > 0 ? .red : .green)
+                            .font(.subheadline)
+                            // Red for negative impact (spending increase), Green for positive impact (spending decrease)
+                            .foregroundStyle(percentage > 0 ? Color(.systemRed) : Color(.systemGreen))
                             .onTapGesture {
                                 navigationManager.navigate(to: .insights, scrollTo: "MonthComparison")
                             }
                         }
                     }
                     .padding(.vertical, 8)
-                    .listRowInsets(EdgeInsets())
+                    .listRowInsets(EdgeInsets(top: 10, leading: 20, bottom: 10, trailing: 20))
                     .listRowBackground(Color.clear)
                 }
                 

@@ -14,21 +14,21 @@ struct Theme {
         }
     }
     struct Accents {
-        static let green = Color(red: 0.0, green: 0.8, blue: 0.4) // Emerald Green
-        static let red = Color(red: 1.0, green: 0.23, blue: 0.19) // Ruby Red
-        static let amber = Color(red: 1.0, green: 0.75, blue: 0.0) // Golden Amber
-        static let pink = Color(red: 1.0, green: 0.2, blue: 0.6) // Raspberry
-        static let purple = Color(red: 0.6, green: 0.3, blue: 0.9) // Electric Purple
-        static let cyan = Color(red: 0.2, green: 0.8, blue: 1.0) // Sky Blue
+        static let green = Color(.systemGreen)
+        static let red = Color(.systemRed)
+        static let amber = Color(.systemOrange)
+        static let pink = Color(.systemPink)
+        static let purple = Color(.systemPurple)
+        static let cyan = Color(.systemTeal)
     }
 
     struct CategoryColors {
-        static let food = Color.orange
-        static let transport = Color.blue
-        static let shopping = Color.purple
-        static let entertainment = Color.indigo
-        static let health = Color.red
-        static let bills = Color.teal
-        static let misc = Color(UIColor.secondaryLabel)
+        static let food = Color(.systemOrange)
+        static let transport = Color(.systemBlue)
+        static let shopping = Color(.systemPurple)
+        static let entertainment = Color(.systemIndigo)
+        static let health = Color(.systemRed)
+        static let bills = Color(.systemTeal)
+        static let misc = Color(.secondaryLabel)
     }
 }

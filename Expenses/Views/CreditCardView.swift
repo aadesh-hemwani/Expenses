@@ -24,56 +24,21 @@ struct CreditCardView: View {
     var body: some View {
         ZStack {
             // Dark Card Background with Mesh/Gradient logic
+            // Card Background
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [Color(hex: "1c1c1e"), Color(hex: "2c2c2e")], // Dark gray gradient
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .overlay(
-                    // Subtle mesh pattern simulation using gradients
-                    ZStack {
-                        RadialGradient(
-                            colors: [.purple.opacity(0.3), .clear],
-                            center: .topTrailing,
-                            startRadius: 0,
-                            endRadius: 200
-                        )
-                        RadialGradient(
-                            colors: [.blue.opacity(0.2), .clear],
-                            center: .bottomLeading,
-                            startRadius: 0,
-                            endRadius: 200
-                        )
-                         RadialGradient(
-                            colors: [.orange.opacity(0.1), .clear],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: 150
-                        )
-                    }
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                .shadow(color: Color.black.opacity(0.3), radius: 15, x: 0, y: 10)
+                .fill(Color(.secondarySystemBackground))
+                .shadow(color: Color(.label).opacity(0.1), radius: 10, x: 0, y: 5)
             
             VStack(alignment: .leading) {
                 // Top Row: Chip + Contactless
                 HStack {
                     // Simulated Chip
                     RoundedRectangle(cornerRadius: 6)
-                        .fill(
-                            LinearGradient(
-                                colors: [.yellow.opacity(0.8), .yellow.opacity(0.4), .yellow.opacity(0.8)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
+                        .fill(Color(.tertiarySystemFill))
                         .frame(width: 45, height: 30)
                         .overlay(
                             RoundedRectangle(cornerRadius: 6)
-                                .stroke(Color.black.opacity(0.2), lineWidth: 1)
+                                .stroke(Color(.separator), lineWidth: 1)
                         )
                     
                     Spacer()
@@ -81,7 +46,7 @@ struct CreditCardView: View {
                     // Contactless Icon
                     Image(systemName: "wave.3.right")
                         .font(.title2)
-                        .foregroundColor(.gray.opacity(0.6))
+                        .foregroundColor(Color(.secondaryLabel))
                         .rotationEffect(.degrees(-90))
                 }
                 .padding(.bottom, 20)
@@ -90,29 +55,29 @@ struct CreditCardView: View {
                 Text("CURRENT SPENDINGS")
                     .font(.caption2)
                     .fontWeight(.bold)
-                    .foregroundColor(.gray)
+                    .foregroundColor(Color(.secondaryLabel))
                     .tracking(1)
                 
                 // Amount
                 HStack(alignment: .firstTextBaseline, spacing: 2) {
                     Text("₹")
                         .font(.system(size: 32, weight: .regular))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color(.label))
                     
                     Text(formattedTotal.whole)
                         .font(.system(size: 44, weight: .semibold))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color(.label))
                     
                     Text(formattedTotal.fraction)
                         .font(.system(size: 24, weight: .regular))
-                        .foregroundColor(.gray)
+                        .foregroundColor(Color(.secondaryLabel))
                 }
                 .padding(.bottom, 10)
                 
                 // Card Number Simulation
                 Text("•••• •••• •••• 4029") // Static for now, consistent with design
                     .font(.system(size: 14, design: .monospaced))
-                    .foregroundColor(.gray)
+                    .foregroundColor(Color(.secondaryLabel))
                     .tracking(2)
                 
                 Spacer()
@@ -123,13 +88,13 @@ struct CreditCardView: View {
                         Text("ACCOUNT HOLDER")
                             .font(.caption2)
                             .fontWeight(.bold)
-                            .foregroundColor(.gray)
+                            .foregroundColor(Color(.secondaryLabel))
                             .tracking(1)
                         
                         Text(name.uppercased())
                             .font(.footnote)
                             .fontWeight(.bold)
-                            .foregroundColor(.white)
+                            .foregroundColor(Color(.label))
                             .tracking(1)
                     }
                     
@@ -142,10 +107,10 @@ struct CreditCardView: View {
                     }
                     .font(.caption2)
                     .fontWeight(.bold)
-                    .foregroundColor(.pink)
+                    .foregroundColor(.green)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
-                    .background(Color.pink.opacity(0.15))
+                    .background(Color.green.opacity(0.15))
                     .cornerRadius(12)
                 }
             }

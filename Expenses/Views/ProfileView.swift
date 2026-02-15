@@ -21,7 +21,7 @@ struct ProfileView: View {
                             } placeholder: {
                                 Image(systemName: "person.circle.fill")
                                     .resizable()
-                                    .foregroundStyle(.gray)
+                                    .foregroundStyle(Color(.secondaryLabel))
                             }
                             .frame(width: 60, height: 60)
                             .clipShape(Circle())
@@ -29,7 +29,7 @@ struct ProfileView: View {
                             Image(systemName: "person.circle.fill")
                                 .resizable()
                                 .frame(width: 60, height: 60)
-                                .foregroundStyle(.gray)
+                                .foregroundStyle(Color(.secondaryLabel))
                         }
                         
                         VStack(alignment: .leading, spacing: 4) {

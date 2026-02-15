@@ -14,6 +14,7 @@ struct ContentView: View {
     @EnvironmentObject var authManager: AuthManager
     // Removed local state: @State private var showingAddExpense = false
     @StateObject private var navigationManager = NavigationManager()
+    @State private var sheetDetent: PresentationDetent = .medium
     
     // Appearance State (Read Only here, modifiers applied in body)
     @AppStorage("accumulatedColor") private var accentColorName = "Green"
@@ -54,8 +55,10 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $navigationManager.showingAddExpense) {
-            AddExpenseView()
+            AddExpenseView(sheetDetent: $sheetDetent)
                 .environmentObject(repository)
+                .presentationDetents([.medium, .large], selection: $sheetDetent)
+                .presentationDragIndicator(.visible)
         }
         .onOpenURL { url in
             navigationManager.handleDeepLink(url: url)
