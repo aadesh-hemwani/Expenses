@@ -6,12 +6,7 @@ struct TransactionRow: View {
     var body: some View {
         HStack(spacing: 16) {
             // Leading Icon
-            ZStack {
-                Image(systemName: expense.icon)
-                    .font(.system(size: 24))
-                    .foregroundStyle(expense.color)
-                    .symbolRenderingMode(.monochrome)
-            }
+            CategoryIconView(icon: expense.icon, color: expense.color, size: 40, cornerRadius: 10, iconSize: 22)
             .frame(width: 40, height: 40)
      
             // Title & Category
@@ -48,6 +43,16 @@ struct TransactionRow: View {
         }
         .padding(.vertical, 4)
         .contentShape(Rectangle()) // Make entire row tappable
+    }
+}
+
+// Add custom button style for the scale effect
+struct TransactionRowButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .animation(.interactiveSpring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
+            .background(Color.clear) // Ensure it can be pressed
     }
 }
 

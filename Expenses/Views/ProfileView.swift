@@ -5,7 +5,6 @@ struct ProfileView: View {
     @EnvironmentObject var authManager: AuthManager
     
     // Appearance State Persisted
-    @AppStorage("accumulatedColor") private var accentColorName = "Green"
     @State private var monthlyBudget: Double = 0.0
     @FocusState private var isBudgetFocused: Bool
     
@@ -45,22 +44,6 @@ struct ProfileView: View {
                     .padding(.vertical, 4)
                 }
                 
-                // SECTION 2: APPEARANCE
-                Section {
-                    
-                    NavigationLink {
-                        AccentColorView()
-                    } label: {
-                        HStack {
-                            Text("Accent Color")
-                            Spacer()
-                            Text(accentColorName)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                } header: {
-                    Text("Appearance")
-                }
                 
                 // SECTION 3: BUDGET SETTINGS
                 Section {

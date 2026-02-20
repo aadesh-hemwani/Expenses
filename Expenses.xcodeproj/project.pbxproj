@@ -189,8 +189,6 @@
 				40F42AD82F41F18C00D91003 /* AddExpensesWidget */,
 			);
 			name = AddExpensesWidgetExtension;
-			packageProductDependencies = (
-			);
 			productName = AddExpensesWidgetExtension;
 			productReference = 40F42AD32F41F18C00D91003 /* AddExpensesWidgetExtension.appex */;
 			productType = "com.apple.product-type.app-extension";

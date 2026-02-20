@@ -290,14 +290,14 @@ struct MonthDetailView: View {
     
     private func categoryColor(for category: String) -> Color {
         switch category {
-        case "Food": return .orange
-        case "Transport": return .blue
-        case "Shopping": return .purple
-        case "Entertainment": return .pink
-        case "Health": return .red
-        case "Bills": return .yellow
-        case "Other": return .gray
-        default: return .blue
+        case "Food": return Theme.CategoryColors.food
+        case "Transport": return Theme.CategoryColors.transport
+        case "Shopping": return Theme.CategoryColors.shopping
+        case "Entertainment": return Theme.CategoryColors.entertainment
+        case "Bills": return Theme.CategoryColors.bills
+        case "Health": return Theme.CategoryColors.health
+        case "Misc": return Theme.CategoryColors.misc
+        default: return Theme.CategoryColors.misc
         }
     }
     

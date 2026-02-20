@@ -297,13 +297,26 @@ struct CategoryPill: View {
         Button(action: action) {
             VStack(spacing: 4) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(isSelected ? color : Color.clear)
+                    // Native Settings Icon Background
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color(white: 0.12))
+                        .frame(width: 44, height: 44)
+                    
+                    // Border highlight
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [.white.opacity(isSelected ? 0.4 : 0.2), .white.opacity(0.05)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: isSelected ? 1.5 : 1
+                        )
                         .frame(width: 44, height: 44)
                     
                     Image(systemName: icon)
-                        .font(.system(size: 20))
-                        .foregroundStyle(isSelected ? .white : color.opacity(0.4))
+                        .font(.system(size: 22, weight: .medium))
+                        .foregroundStyle(isSelected ? color : color.opacity(0.4))
                         .symbolEffect(.bounce, value: animateTrigger)
                 }
                 

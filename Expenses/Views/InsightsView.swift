@@ -204,7 +204,7 @@ struct BudgetCard: View {
                 }
                 
                 ProgressView(value: min(progress, 1.0))
-                    .tint(isOverBudget ? Color(.systemRed) : Theme.getAccentColor())
+                    .tint(isOverBudget ? Color(.systemRed) : Color.accentColor)
                     .scaleEffect(x: 1, y: 1.5, anchor: .center)
             }
             
@@ -309,6 +309,9 @@ struct TrendsCard: View {
     @EnvironmentObject var repository: ExpenseRepository
     
     @State private var selectedTimeFrame: TimeFrame = .daily
+    @State private var selectedDay: String?
+    @State private var selectedWeek: String?
+    @State private var selectedMonth: String?
     
     enum TimeFrame: String, CaseIterable, Identifiable {
         case daily = "Daily"
@@ -386,19 +389,41 @@ struct TrendsCard: View {
                 }
             }
             .pickerStyle(.segmented)
+            .onChange(of: selectedTimeFrame) { _, _ in
+                // Reset selections when changing tab
+                selectedDay = nil
+                selectedWeek = nil
+                selectedMonth = nil
+            }
             
             Group {
                 switch selectedTimeFrame {
                 case .daily:
                     if !dailyData.isEmpty {
-                        Chart(dailyData, id: \.day) { item in
-                            BarMark(
-                                x: .value("Day", item.day),
-                                y: .value("Amount", item.amount)
-                            )
-                            .cornerRadius(4)
-                            .foregroundStyle(Theme.getAccentColor())
+                        Chart {
+                            ForEach(dailyData, id: \.day) { item in
+                                BarMark(
+                                    x: .value("Day", item.day),
+                                    y: .value("Amount", item.amount)
+                                )
+                                .cornerRadius(4)
+                                .foregroundStyle(Color.accentColor)
+                                
+                                if let selectedDay, selectedDay == item.day {
+                                    RuleMark(x: .value("Day", item.day))
+                                        .foregroundStyle(Color(.tertiaryLabel))
+                                        .zIndex(-1)
+                                        .annotation(
+                                            position: .top,
+                                            spacing: 0,
+                                            overflowResolution: .init(x: .fit(to: .chart), y: .disabled)
+                                        ) {
+                                            ChartPopover(amount: item.amount)
+                                        }
+                                }
+                            }
                         }
+                        .chartXSelection(value: $selectedDay)
                         .chartXAxis {
                             AxisMarks(values: .automatic(desiredCount: 10))
                         }
@@ -407,27 +432,59 @@ struct TrendsCard: View {
                     }
                 case .weekly:
                     if !weeklyData.isEmpty {
-                        Chart(weeklyData, id: \.week) { item in
-                            BarMark(
-                                x: .value("Week", item.week),
-                                y: .value("Amount", item.amount)
-                            )
-                            .cornerRadius(6)
-                            .foregroundStyle(Theme.getAccentColor())
+                        Chart {
+                            ForEach(weeklyData, id: \.week) { item in
+                                BarMark(
+                                    x: .value("Week", item.week),
+                                    y: .value("Amount", item.amount)
+                                )
+                                .cornerRadius(6)
+                                .foregroundStyle(Color.accentColor)
+                                
+                                if let selectedWeek, selectedWeek == item.week {
+                                    RuleMark(x: .value("Week", item.week))
+                                        .foregroundStyle(Color(.tertiaryLabel))
+                                        .zIndex(-1)
+                                        .annotation(
+                                            position: .top,
+                                            spacing: 0,
+                                            overflowResolution: .init(x: .fit(to: .chart), y: .disabled)
+                                        ) {
+                                            ChartPopover(amount: item.amount)
+                                        }
+                                }
+                            }
                         }
+                        .chartXSelection(value: $selectedWeek)
                     } else {
                         NoDataView()
                     }
                 case .monthly:
                     if !monthlyData.isEmpty {
-                        Chart(monthlyData, id: \.month) { item in
-                            BarMark(
-                                x: .value("Month", item.month),
-                                y: .value("Amount", item.amount)
-                            )
-                            .cornerRadius(6)
-                            .foregroundStyle(Theme.getAccentColor())
+                        Chart {
+                            ForEach(monthlyData, id: \.month) { item in
+                                BarMark(
+                                    x: .value("Month", item.month),
+                                    y: .value("Amount", item.amount)
+                                )
+                                .cornerRadius(6)
+                                .foregroundStyle(Color.accentColor)
+                                
+                                if let selectedMonth, selectedMonth == item.month {
+                                    RuleMark(x: .value("Month", item.month))
+                                        .foregroundStyle(Color(.tertiaryLabel))
+                                        .zIndex(-1)
+                                        .annotation(
+                                            position: .top,
+                                            spacing: 0,
+                                            overflowResolution: .init(x: .fit(to: .chart), y: .disabled)
+                                        ) {
+                                            ChartPopover(amount: item.amount)
+                                        }
+                                }
+                            }
                         }
+                        .chartXSelection(value: $selectedMonth)
                     } else {
                         NoDataView()
                     }
@@ -449,6 +506,35 @@ struct TrendsCard: View {
         .padding(20)
         .background(Color(.secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 20))
+    }
+}
+
+struct ChartPopover: View {
+    let amount: Double
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 2) {
+                Image(systemName: "indianrupeesign")
+                    .font(.caption2)
+                Text(amount.formatted(.number.precision(.fractionLength(0))))
+                    .font(.caption.bold())
+                    .lineLimit(1)
+            }
+            .fixedSize()
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(Color(.secondarySystemGroupedBackground))
+                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .strokeBorder(Color(.separator), lineWidth: 0.5)
+        )
+        .padding(.bottom, 4)
     }
 }
 
@@ -511,7 +597,6 @@ struct MonthComparisonCard: View {
     
     private var comparisonData: [(day: Int, amount: Double, type: String)] {
         let calendar = Calendar.current
-        var data: [(day: Int, amount: Double, type: String)] = []
         
         // Helper to calculate cumulative
         func getCumulative(expenses: [Expense], type: String) -> [(Int, Double, String)] {
@@ -567,7 +652,7 @@ struct MonthComparisonCard: View {
                 .lineStyle(StrokeStyle(lineWidth: 3, dash: item.type == "Last Month" ? [5, 5] : []))
             }
             .chartForegroundStyleScale([
-                "Current": Theme.getAccentColor(),
+                "Current": Color.accentColor,
                 "Last Month": Color(.secondaryLabel)
             ])
             .chartLegend(.hidden)
@@ -589,7 +674,7 @@ struct MonthComparisonCard: View {
             
             HStack {
                 Circle()
-                    .fill(Theme.getAccentColor())
+                    .fill(Color.accentColor)
                     .frame(width: 8, height: 8)
                 Text("Current")
                     .font(.caption)
@@ -656,7 +741,7 @@ struct TypeDistributionCard: View {
                             innerRadius: .ratio(0.6),
                             angularInset: 2
                         )
-                        .foregroundStyle(Theme.getAccentColor())
+                        .foregroundStyle(Color.accentColor)
                         .cornerRadius(4)
                         
                         SectorMark(
@@ -682,7 +767,7 @@ struct TypeDistributionCard: View {
                 VStack(alignment: .leading, spacing: 12) {
                     // Regular
                     HStack {
-                        Circle().fill(Theme.getAccentColor()).frame(width: 8, height: 8)
+                        Circle().fill(Color.accentColor).frame(width: 8, height: 8)
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Regular")
                                 .font(.caption)

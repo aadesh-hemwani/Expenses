@@ -17,8 +17,6 @@ struct ContentView: View {
     @State private var sheetDetent: PresentationDetent = .medium
     
     // Appearance State (Read Only here, modifiers applied in body)
-    @AppStorage("accumulatedColor") private var accentColorName = "Green"
-    
     init(userId: String) {
         _repository = StateObject(wrappedValue: ExpenseRepository(userId: userId))
         
@@ -65,7 +63,6 @@ struct ContentView: View {
         }
         .environmentObject(repository)
         .environmentObject(navigationManager)
-        .tint(Theme.getAccentColor()) // Dynamic Accent Color
         .alert(item: Binding<IdentifiableString?>(
             get: { repository.errorMessage.map { IdentifiableString(value: $0) } },
             set: { _ in repository.errorMessage = nil }

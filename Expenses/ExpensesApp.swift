@@ -22,6 +22,7 @@ struct ExpensesApp: App {
                         .environmentObject(authManager)
                 }
             }
+            .fontDesign(.rounded)
             .onOpenURL { url in
                 GIDSignIn.sharedInstance.handle(url)
             }

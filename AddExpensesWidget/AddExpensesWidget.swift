@@ -16,7 +16,7 @@ struct Provider: TimelineProvider {
 
         // Refresh hourly
         let currentDate = Date()
-        let entryDate = Calendar.current.date(byAdding: .hour, value: 1, to: currentDate)!
+
         let entry = SimpleEntry(date: currentDate)
         entries.append(entry)
 

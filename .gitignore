@@ -1,9 +1,9 @@
 # Xcode
-## Build generated
+#
+# build/ is the default folder for swift-build
 build/
 DerivedData/
-
-## Various settings
+*.moved-aside
 *.pbxuser
 !default.pbxuser
 *.mode1v3
@@ -13,43 +13,86 @@ DerivedData/
 *.perspectivev3
 !default.perspectivev3
 xcuserdata/
-
-## Other
-*.moved-aside
 *.xccheckout
 *.xcscmblueprint
 
-# Obj-C/Swift specific
-*.hmap
-*.ipa
-*.dSYM.zip
-*.dSYM
+# Other xc-related
+# The profile below is used by fastlane
+*.mobileprovision
 
-# Playground
-timeline.xctimeline
-playground.xcworkspace
+# Carthage
+#
+# Add this line if you want to avoid checking in source code from Carthage dependencies.
+# Carthage/Checkouts
 
-# Swift Package Manager
+Carthage/Build
+
+# fastlane
+#
+# It is recommended to not store the screenshots in the git repo. Instead, use fastlane to re-generate the
+# screenshots whenever they are needed.
+# For more information about the recommended setup visit:
+# https://docs.fastlane.tools/best-practices/source-control/
+
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# SwiftPM
+#
+# Add this line if you want to avoid checking in source code from SwiftPM dependencies.
+# Packages/
+# Package.pins
+# Package.resolved
 .build/
+.swiftpm/xcode/
 
 # CocoaPods
+#
 # We recommend against adding the Pods directory to your .gitignore. However
 # you should judge for yourself, the pros and cons are mentioned at:
 # https://guides.cocoapods.org/using/using-cocoapods.html#should-i-check-the-pods-directory-into-source-control
 #
 # Pods/
 #
-# Add this line if you want to avoid checking in source code from the Pods directory
+# Add this line if you want to avoid checking in source code from CocoaPods dependencies.
+# Pods/
+
+# Swift/Xcode Custom Caches in root
+ModuleCache.noindex/
+SDKStatCaches.noindex/
+Expenses-*/
+*-*-*/Build/
+*-*/Build/
+
+# OS X
+#
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Icon must end with two \r
+Icon
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# CocoaPods
 Pods/
-
-# Carthage
-# Carthage/Build
-
-# fastlane
-# It is recommended to not ignore the screenshots
-# fastlane/screenshots
-# fastlane/test_output
-
-# Code Injection
-# After new code Injection tools there's a generated folder /iOSInjectionProject
-iOSInjectionProject/

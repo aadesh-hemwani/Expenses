@@ -84,97 +84,105 @@ struct ExpenseListView: View {
                 // Header Section
                 // Header Section
                 Section {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .center, spacing: 12) {
                         Text(currentMonthYear)
                             .font(.subheadline)
                             .fontWeight(.medium)
-                            .foregroundStyle(Color(.secondaryLabel))
+                            .foregroundStyle(.secondary)
 
                         HStack(alignment: .lastTextBaseline, spacing: 4) {
                             Image(systemName: "indianrupeesign")
-                                .font(.system(size: 30, weight: .bold)) // Slightly smaller than text for visual balance
-                                .foregroundStyle(Color(.label))
+                                .font(.system(size: 28, weight: .thin))
+                                .foregroundStyle(.secondary)
                             
                             Text(formattedTotal.whole)
-                                .font(.system(size: 40, weight: .bold))
-                                .foregroundStyle(Color(.label))
+                                .font(.system(size: 46, weight: .semibold))
+                                .foregroundStyle(.primary)
                             
                             Text(formattedTotal.fraction)
-                                .font(.system(size: 24, weight: .light))
-                                .foregroundStyle(Color(.secondaryLabel))
-                        }
-                        .contentTransition(.numericText())
-                        
-                        // Segregated Totals
-                        HStack(spacing: 12) {
-                            let regularTotal = repository.expenses.filter { $0.type == .regular && Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .month) }.reduce(0) { $0 + $1.amount }
-                            let oneOffTotal = repository.expenses.filter { $0.type == .oneOff && Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .month) }.reduce(0) { $0 + $1.amount }
-                            
-                            HStack(spacing: 4) {
-                                Circle().fill(Theme.getAccentColor()).frame(width: 6, height: 6)
-                                HStack(spacing: 2) {
-                                    Text("Regular:")
-                                    Image(systemName: "indianrupeesign")
-                                        .font(.caption2)
-                                    Text("\(Int(regularTotal))")
-                                }
-                                .font(.caption)
+                                .font(.system(size: 24, weight: .medium))
                                 .foregroundStyle(.secondary)
-                            }
-                            
-                            HStack(spacing: 4) {
-                                Circle().fill(Color.orange).frame(width: 6, height: 6)
-                                HStack(spacing: 2) {
-                                    Text("One-off:")
-                                    Image(systemName: "indianrupeesign")
-                                        .font(.caption2)
-                                    Text("\(Int(oneOffTotal))")
-                                }
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            }
                         }
-                        .padding(.bottom, 4)
                         .contentTransition(.numericText())
                         
                         if let percentage = repository.monthOverMonthPercentage {
                             HStack(spacing: 4) {
-                                Image(systemName: percentage > 0 ? "arrow.up" : "arrow.down")
-                                Text("\(abs(Int(percentage)))% compared to last month")
+                                Image(systemName: percentage > 0 ? "arrow.up.right" : "arrow.down.right")
+                                Text("\(abs(Int(percentage)))% vs last month")
                             }
-                            .font(.subheadline)
-                            // Red for negative impact (spending increase), Green for positive impact (spending decrease)
-                            .foregroundStyle(percentage > 0 ? Color(.systemRed) : Color(.systemGreen))
+                            .font(.caption.bold())
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill(percentage > 0 ? Color.red.opacity(0.15) : Color.green.opacity(0.15))
+                            )
+                            .foregroundStyle(percentage > 0 ? Color.red : Color.green)
                             .onTapGesture {
                                 navigationManager.navigate(to: .insights, scrollTo: "MonthComparison")
                             }
-                            .padding(.vertical, 4)
+                        }
+
+                        // Segregated Totals
+                        let regularTotal = repository.expenses.filter { $0.type == .regular && Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .month) }.reduce(0) { $0 + $1.amount }
+                        let oneOffTotal = repository.expenses.filter { $0.type == .oneOff && Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .month) }.reduce(0) { $0 + $1.amount }
+                        
+                        HStack(spacing: 16) {
+                            HStack(spacing: 6) {
+                                Circle().fill(Color.accentColor).frame(width: 6, height: 6)
+                                Text("Regular: \(Int(regularTotal))")
+                            }
+                            HStack(spacing: 6) {
+                                Circle().fill(Color.orange).frame(width: 6, height: 6)
+                                Text("One-off: \(Int(oneOffTotal))")
+                            }
+                        }
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 4)
+                        .contentTransition(.numericText())
+                    }
+                    .padding(.vertical, 24)
+                    .padding(.horizontal, 20)
+                    .frame(maxWidth: .infinity)
+                    .background {
+                        ZStack {
+                            // Soft mesh gradient base
+                            LinearGradient(
+                                colors: [
+                                    Color.indigo.opacity(0.15),
+                                    Color.purple.opacity(0.1)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                            
+                            // Refined Glass Material
+                            Rectangle()
+                                .fill(.ultraThinMaterial)
                         }
                     }
-                    .padding(.vertical, 8)
+                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 6)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .strokeBorder(.white.opacity(0.2), lineWidth: 1)
+                    )
+                    .padding(.bottom, 8)
                     .listRowInsets(EdgeInsets(top: 10, leading: 20, bottom: 10, trailing: 20))
                     .listRowBackground(Color.clear)
-                    // Filter
-                    Picker("Filter by Type", selection: $selectedFilter) {
-                        Text("All").tag(Optional<Expense.ExpenseType>.none)
-                        ForEach(Expense.ExpenseType.allCases, id: \.self) { type in
-                            Text(type.rawValue).tag(Optional(type))
-                        }
-                    }
-                    .pickerStyle(.palette)
-                    .listRowInsets(EdgeInsets(top: 10, leading: 20, bottom: 0, trailing: 20))
-                    .listRowBackground(Color.clear)
-                    .padding(.vertical, 4)    
                 }
                 
                 // Transactions
                 ForEach(groupedExpenses) { group in
                     Section {
                         ForEach(group.expenses) { expense in
-                            TransactionRow(expense: expense)
-                                .onTapGesture {
-                                    expenseToEdit = expense
-                                }
+                            Button {
+                                expenseToEdit = expense
+                            } label: {
+                                TransactionRow(expense: expense)
+                            }
+                            .buttonStyle(TransactionRowButtonStyle())
                         }
                         .onDelete { offsets in
                             deleteExpenses(at: offsets, in: group)
@@ -192,6 +200,22 @@ struct ExpenseListView: View {
             .animation(.default, value: repository.expenses)
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Picker("Filter", selection: $selectedFilter) {
+                            Text("All").tag(Optional<Expense.ExpenseType>.none)
+                            ForEach(Expense.ExpenseType.allCases, id: \.self) { type in
+                                Text(type.rawValue).tag(Optional(type))
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "line.3.horizontal.decrease")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(selectedFilter == nil ? Color.primary : Color.accentColor)
+                    }
+                }
+            }
             .sheet(item: $expenseToEdit) { expense in
                 AddExpenseView(expenseToEdit: expense)
                     .environmentObject(repository)

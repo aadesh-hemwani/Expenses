@@ -7,12 +7,25 @@
 		<key>AddExpensesWidgetExtension.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>50</integer>
+			<integer>49</integer>
 		</dict>
 		<key>Expenses.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>49</integer>
+			<integer>50</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>4086A2D82F3E5FD8003FC335</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>40F42AD22F41F18C00D91003</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>
