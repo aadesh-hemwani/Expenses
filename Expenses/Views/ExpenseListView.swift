@@ -15,9 +15,11 @@ struct ExpenseListView: View {
     }
     
     // Computed property for total expenses of current month
-    // Now using cached stats from Firestore via Repository
     private var currentMonthTotal: Double {
-        return repository.currentMonthTotalAmount
+        let currentMonthExpenses = filteredExpenses.filter {
+            Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .month)
+        }
+        return currentMonthExpenses.reduce(0) { $0 + $1.amount }
     }
     
     // Format currency parts
@@ -80,99 +82,6 @@ struct ExpenseListView: View {
     var body: some View {
         NavigationStack {
             List {
-                // Header Section
-                // Header Section
-                // Header Section
-                Section {
-                    VStack(alignment: .center, spacing: 12) {
-                        Text(currentMonthYear)
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                            .foregroundStyle(.secondary)
-
-                        HStack(alignment: .lastTextBaseline, spacing: 4) {
-                            Image(systemName: "indianrupeesign")
-                                .font(.system(size: 28, weight: .thin))
-                                .foregroundStyle(.secondary)
-                            
-                            Text(formattedTotal.whole)
-                                .font(.system(size: 46, weight: .semibold))
-                                .foregroundStyle(.primary)
-                            
-                            Text(formattedTotal.fraction)
-                                .font(.system(size: 24, weight: .medium))
-                                .foregroundStyle(.secondary)
-                        }
-                        .contentTransition(.numericText())
-                        
-                        if let percentage = repository.monthOverMonthPercentage {
-                            HStack(spacing: 4) {
-                                Image(systemName: percentage > 0 ? "arrow.up.right" : "arrow.down.right")
-                                Text("\(abs(Int(percentage)))% vs last month")
-                            }
-                            .font(.caption.bold())
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(
-                                Capsule()
-                                    .fill(percentage > 0 ? Color.red.opacity(0.15) : Color.green.opacity(0.15))
-                            )
-                            .foregroundStyle(percentage > 0 ? Color.red : Color.green)
-                            .onTapGesture {
-                                navigationManager.navigate(to: .insights, scrollTo: "MonthComparison")
-                            }
-                        }
-
-                        // Segregated Totals
-                        let regularTotal = repository.expenses.filter { $0.type == .regular && Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .month) }.reduce(0) { $0 + $1.amount }
-                        let oneOffTotal = repository.expenses.filter { $0.type == .oneOff && Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .month) }.reduce(0) { $0 + $1.amount }
-                        
-                        HStack(spacing: 16) {
-                            HStack(spacing: 6) {
-                                Circle().fill(Color.accentColor).frame(width: 6, height: 6)
-                                Text("Regular: \(Int(regularTotal))")
-                            }
-                            HStack(spacing: 6) {
-                                Circle().fill(Color.orange).frame(width: 6, height: 6)
-                                Text("One-off: \(Int(oneOffTotal))")
-                            }
-                        }
-                        .font(.caption2.weight(.medium))
-                        .foregroundStyle(.secondary)
-                        .padding(.top, 4)
-                        .contentTransition(.numericText())
-                    }
-                    .padding(.vertical, 24)
-                    .padding(.horizontal, 20)
-                    .frame(maxWidth: .infinity)
-                    .background {
-                        ZStack {
-                            // Soft mesh gradient base
-                            LinearGradient(
-                                colors: [
-                                    Color.indigo.opacity(0.15),
-                                    Color.purple.opacity(0.1)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                            
-                            // Refined Glass Material
-                            Rectangle()
-                                .fill(.ultraThinMaterial)
-                        }
-                    }
-                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                    .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 6)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .strokeBorder(.white.opacity(0.2), lineWidth: 1)
-                    )
-                    .padding(.bottom, 8)
-                    .listRowInsets(EdgeInsets(top: 10, leading: 20, bottom: 10, trailing: 20))
-                    .listRowBackground(Color.clear)
-                }
-                
                 // Transactions
                 ForEach(groupedExpenses) { group in
                     Section {
@@ -197,13 +106,16 @@ struct ExpenseListView: View {
                 }
             }
             .listStyle(.insetGrouped)
-            .animation(.default, value: repository.expenses)
+            .safeAreaInset(edge: .top, spacing: -90) {
+                headerView()
+            }
+            .animation(.easeInOut, value: repository.expenses)
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
-                        Picker("Filter", selection: $selectedFilter) {
+                        Picker("Filter", selection: $selectedFilter.animation()) {
                             Text("All").tag(Optional<Expense.ExpenseType>.none)
                             ForEach(Expense.ExpenseType.allCases, id: \.self) { type in
                                 Text(type.rawValue).tag(Optional(type))
@@ -228,6 +140,85 @@ struct ExpenseListView: View {
         offsets.forEach { index in
             let expenseToDelete = group.expenses[index]
             repository.delete(expense: expenseToDelete)
+        }
+    }
+
+    @ViewBuilder
+    private func headerView() -> some View {
+        let displayCornerRadius = UIScreen.main.value(forKey: "_displayCornerRadius") as? CGFloat ?? 0
+        
+        VStack(alignment: .center, spacing: 12) {
+            Text(currentMonthYear)
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundStyle(.secondary)
+
+            HStack(alignment: .lastTextBaseline, spacing: 4) {
+                Image(systemName: "indianrupeesign")
+                    .font(.system(size: 28, weight: .thin))
+                    .foregroundStyle(.secondary)
+                HStack(alignment: .lastTextBaseline, spacing: 0) {
+                Text(formattedTotal.whole)
+                    .font(.system(size: 46, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .modifier(AnimatableNumberModifier(number: currentMonthTotal))
+                    .animation(.easeInOut, value: currentMonthTotal)
+                }
+            }
+            
+            if let percentage = repository.monthOverMonthPercentage {
+                HStack(spacing: 4) {
+                    Image(systemName: percentage > 0 ? "arrow.up.right" : "arrow.down.right")
+                    Text("\(abs(Int(percentage)))% vs last month today")
+                }
+                .font(.caption.bold())
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(
+                    Capsule()
+                        .fill(percentage > 0 ? Color.red.opacity(0.15) : Color.green.opacity(0.15))
+                )
+                .foregroundStyle(percentage > 0 ? Color.red : Color.green)
+                .onTapGesture {
+                    navigationManager.navigate(to: .insights, scrollTo: "MonthComparison")
+                }.glassEffect(.clear)
+            }
+        }
+        .padding(.bottom, 10)
+        .padding(.top, 70)
+        .frame(maxWidth: .infinity)
+        .glassEffect(.clear, in: UnevenRoundedRectangle(topLeadingRadius: displayCornerRadius, bottomLeadingRadius: 30, bottomTrailingRadius: 30, topTrailingRadius: displayCornerRadius))
+        .ignoresSafeArea(edges: .top)
+    }
+}
+
+struct AnimatableNumberModifier: ViewModifier, Animatable {
+    var number: Double
+    
+    var animatableData: Double {
+        get { number }
+        set { number = newValue }
+    }
+    
+    func body(content: Content) -> some View {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = 2
+        formatter.maximumFractionDigits = 2
+        
+        let totalString = formatter.string(from: NSNumber(value: number)) ?? "0.00"
+        let parts = totalString.split(separator: ".")
+        let whole = parts.count > 0 ? String(parts[0]) : "0"
+        let fraction = parts.count > 1 ? "." + String(parts[1]) : ".00"
+        
+        return HStack(alignment: .lastTextBaseline, spacing: 0) {
+            Text(whole)
+                .font(.system(size: 46, weight: .semibold))
+                .foregroundStyle(.primary)
+            
+            Text(fraction)
+                .font(.system(size: 46, weight: .thin))
+                .foregroundStyle(.secondary)
         }
     }
 }

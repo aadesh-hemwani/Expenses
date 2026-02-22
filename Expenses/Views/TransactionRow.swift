@@ -3,6 +3,24 @@ import SwiftUI
 struct TransactionRow: View {
     let expense: Expense
     
+    private var parsedData: (displayTitle: String, subCategory: String?) {
+        let components = expense.title.components(separatedBy: "-")
+        if components.count > 1 {
+            let subCat = components[0].trimmingCharacters(in: .whitespacesAndNewlines)
+            // Re-join the rest in case there were multiple hyphens (e.g., "Lunch - subway - extra")
+            let title = components.dropFirst().joined(separator: "-").trimmingCharacters(in: .whitespacesAndNewlines)
+            
+            // Capitalize first letter for neatness
+            let capitalizedTitle = title.prefix(1).capitalized + title.dropFirst()
+            return (displayTitle: capitalizedTitle, subCategory: subCat.prefix(1).capitalized + subCat.dropFirst())
+        }
+        
+        // No hyphen, use default
+        let title = expense.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let capitalizedDefault = title.prefix(1).capitalized + title.dropFirst()
+        return (displayTitle: capitalizedDefault, subCategory: nil)
+    }
+
     var body: some View {
         HStack(spacing: 16) {
             // Leading Icon
@@ -11,14 +29,22 @@ struct TransactionRow: View {
      
             // Title & Category
             VStack(alignment: .leading, spacing: 4) {
-                Text(expense.title)
+                Text(parsedData.displayTitle)
                     .font(.body)
-                    .fontWeight(.medium)
+                    .fontWeight(.semibold) // Made slightly bolder for hierarchy
                     .lineLimit(1)
                 
-                Text(expense.category)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 4) {
+                    Text(expense.category)
+                        
+                    if let subCat = parsedData.subCategory {
+                        Text("•")
+                        Text(subCat)
+                    }
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
             }
             
             Spacer()

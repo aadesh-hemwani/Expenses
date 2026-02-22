@@ -135,7 +135,8 @@ struct AddExpenseView: View {
                                         name: cat.name,
                                         icon: cat.icon,
                                         color: cat.color,
-                                        isSelected: selectedCategory == cat.name
+                                        isSelected: selectedCategory == cat.name,
+                                        isEditing: isEditing
                                     ) {
                                         // Haptic Feedback
                                         if selectedCategory != cat.name {
@@ -160,18 +161,18 @@ struct AddExpenseView: View {
                                 proxy.scrollTo(selectedCategory, anchor: .center)
                             }
                         }
-                        .onChange(of: selectedCategory) { newValue in
+                        .onChange(of: selectedCategory) { _, newValue in
                             withAnimation {
                                 proxy.scrollTo(newValue, anchor: .center)
                             }
                         }
                     }
+                    .allowsHitTesting(isEditing)
                     .listRowInsets(EdgeInsets()) // Full width to edges
                     .listRowBackground(Color.clear)
                 } header: {
                     Text("Category")
                 }
-                .disabled(!isEditing)
                 
                 // Section 4: Type & Date
                 Section {
@@ -288,35 +289,52 @@ struct CategoryPill: View {
     let icon: String
     let color: Color
     let isSelected: Bool
+    var isEditing: Bool = true
     let action: () -> Void
     
     // Local state to track animation trigger purely based on selection becoming true
     @State private var animateTrigger = false
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         Button(action: action) {
             VStack(spacing: 4) {
                 ZStack {
-                    // Native Settings Icon Background
+                    // Background
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Color(white: 0.12))
+                        .fill(colorScheme == .light ? (isSelected ? color : Color(UIColor.tertiarySystemFill)) : Color(white: 0.12))
                         .frame(width: 44, height: 44)
                     
-                    // Border highlight
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .strokeBorder(
-                            LinearGradient(
-                                colors: [.white.opacity(isSelected ? 0.4 : 0.2), .white.opacity(0.05)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: isSelected ? 1.5 : 1
-                        )
-                        .frame(width: 44, height: 44)
+                    if colorScheme == .light && isSelected {
+                        // Subtle reflection gradient
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [.white.opacity(0.2), .white.opacity(0.0)],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                            .frame(width: 44, height: 44)
+                    }
+                    
+                    if colorScheme == .dark {
+                        // Border highlight
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [.white.opacity(isSelected ? 0.4 : 0.2), .white.opacity(0.05)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: isSelected ? 1.5 : 1
+                            )
+                            .frame(width: 44, height: 44)
+                    }
                     
                     Image(systemName: icon)
                         .font(.system(size: 22, weight: .medium))
-                        .foregroundStyle(isSelected ? color : color.opacity(0.4))
+                        .foregroundStyle(isSelected ? (colorScheme == .light ? .white : color) : color.opacity(0.4))
                         .symbolEffect(.bounce, value: animateTrigger)
                 }
                 
@@ -326,6 +344,8 @@ struct CategoryPill: View {
                     .foregroundStyle(isSelected ? .primary : .secondary)
             }
             .scaleEffect(isSelected ? 1.1 : 1.0)
+            .grayscale(!isEditing && !isSelected ? 1.0 : 0.0)
+            .opacity(!isEditing && !isSelected ? 0.6 : 1.0)
         }
         .buttonStyle(.plain)
         .onChange(of: isSelected) { oldValue, newValue in

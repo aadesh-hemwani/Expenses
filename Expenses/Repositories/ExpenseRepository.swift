@@ -52,7 +52,11 @@ class ExpenseRepository: ObservableObject {
                 }
                 
                 self.expenses = querySnapshot?.documents.compactMap { document in
-                    try? document.data(as: Expense.self)
+                    let parsed = try? document.data(as: Expense.self)
+                    if let successParsed = parsed {
+                        CoreSpotlightManager.shared.index(expense: successParsed)
+                    }
+                    return parsed
                 } ?? []
                 
                 // Recalculate total whenever expenses change
@@ -139,7 +143,11 @@ class ExpenseRepository: ObservableObject {
     
     func addExpense(_ expense: Expense) {
         do {
-            let _ = try db.collection("users").document(userId).collection("expenses").addDocument(from: expense)
+            let ref = try db.collection("users").document(userId).collection("expenses").addDocument(from: expense)
+            var indexedExpense = expense
+            indexedExpense.id = ref.documentID
+            CoreSpotlightManager.shared.index(expense: indexedExpense)
+            
             updateStat(for: expense.date, amount: expense.amount)
             invalidateCache(for: expense.date)
         } catch {
@@ -162,6 +170,7 @@ class ExpenseRepository: ObservableObject {
             // Perform update
             do {
                 try self.db.collection("users").document(self.userId).collection("expenses").document(expenseID).setData(from: expense)
+                CoreSpotlightManager.shared.index(expense: expense)
                 self.invalidateCache(for: expense.date)
                 // Also invalidate cache for old date if different
                 // We'd need oldExpense here too if we want to be perfect, but let's assume date change is rare or cache will expire appropriately contextually.
@@ -186,6 +195,7 @@ class ExpenseRepository: ObservableObject {
                 print("Error removing document: \(error)")
                 self?.errorMessage = "Failed to delete expense: \(error.localizedDescription)"
             } else {
+                CoreSpotlightManager.shared.deindex(expenseId: expenseID)
                 self?.updateStat(for: expense.date, amount: -expense.amount)
                 self?.invalidateCache(for: expense.date)
             }
@@ -269,8 +279,12 @@ class ExpenseRepository: ObservableObject {
                     return
                 }
                 
-                let expenses = querySnapshot?.documents.compactMap { document in
-                    try? document.data(as: Expense.self)
+                let expenses: [Expense] = querySnapshot?.documents.compactMap { document in
+                    let parsed: Expense? = try? document.data(as: Expense.self)
+                    if let successParsed = parsed {
+                        CoreSpotlightManager.shared.index(expense: successParsed)
+                    }
+                    return parsed
                 } ?? []
                 
                 // Update cache

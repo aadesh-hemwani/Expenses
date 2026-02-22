@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreSpotlight
 
 // Tab enum for navigation
 enum Tabs: String, CaseIterable {
@@ -15,6 +16,10 @@ struct ContentView: View {
     // Removed local state: @State private var showingAddExpense = false
     @StateObject private var navigationManager = NavigationManager()
     @State private var sheetDetent: PresentationDetent = .medium
+    
+    // Spotlight State
+    @State private var spotlightExpense: Expense?
+    @State private var showingSpotlightExpense: Bool = false
     
     // Appearance State (Read Only here, modifiers applied in body)
     init(userId: String) {
@@ -68,6 +73,30 @@ struct ContentView: View {
             set: { _ in repository.errorMessage = nil }
         )) { error in
             Alert(title: Text("Error"), message: Text(error.value), dismissButton: .default(Text("OK")))
+        }
+        .onContinueUserActivity(CSSearchableItemActionType) { userActivity in
+            if let identifier = userActivity.userInfo?[CSSearchableItemActivityIdentifier] as? String {
+                navigationManager.handleSpotlight(identifier: identifier)
+            }
+        }
+        .onChange(of: navigationManager.spotlightExpenseId) { _, newValue in
+            if let id = newValue {
+                // Find expense in loaded list. If not there, we'd ideally fetch it, 
+                // but for now we look in the primary loaded expenses
+                if let matched = repository.expenses.first(where: { $0.id == id }) {
+                    spotlightExpense = matched
+                    showingSpotlightExpense = true
+                }
+                // Reset so we can trigger again if needed
+                navigationManager.spotlightExpenseId = nil
+            }
+        }
+        .sheet(isPresented: $showingSpotlightExpense) {
+            if let expense = spotlightExpense {
+                AddExpenseView(expenseToEdit: expense)
+                    .environmentObject(repository)
+                    .presentationDragIndicator(.visible)
+            }
         }
     }
     

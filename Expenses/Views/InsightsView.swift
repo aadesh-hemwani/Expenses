@@ -22,7 +22,7 @@ struct InsightsView: View {
                 ScrollView {
                     VStack(spacing: 24) { // Increased vertical spacing (16 -> 24)
                         // 1. Summary Card
-                        SummaryCard(total: totalThisMonth, trend: trendPercentage)
+                        SummaryCard(total: totalThisMonth, trend: trendPercentage, expenses: currentMonthExpenses)
                         
                         // 2. Budget Card
                         BudgetCard(total: totalThisMonth, budget: budget)
@@ -115,47 +115,100 @@ struct InsightsView: View {
 struct SummaryCard: View {
     let total: Double
     let trend: Double
+    let expenses: [Expense]
+    
+    private var currentMonthString: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        return formatter.string(from: Date())
+    }
+    
+    private var regularSplit: Double {
+        expenses.filter { $0.type == .regular }.reduce(0) { $0 + $1.amount }
+    }
+    
+    private var oneOffSplit: Double {
+        expenses.filter { $0.type == .oneOff }.reduce(0) { $0 + $1.amount }
+    }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            HStack {
-                Text("This Month")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                Spacer()
-            }
+        VStack(spacing: 16) {
+            Text(currentMonthString)
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundStyle(.secondary)
             
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 2) {
-                    Image(systemName: "indianrupeesign")
-                        .font(.title) // Slightly smaller than largeTitle
-                        .fontWeight(.bold)
-                    
-                    Text("\(Int(total))")
-                        .font(.largeTitle) // Increased size
-                        .fontWeight(.bold)
-                }
-                .foregroundStyle(.primary)
-                .contentTransition(.numericText(value: total))
+            // Amount
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text("₹")
+                    .font(.title2)
+                    .foregroundStyle(.secondary)
                 
-                if trend != 0 {
-                    HStack(spacing: 4) {
-                        Image(systemName: trend > 0 ? "arrow.up" : "arrow.down")
-                            .fontWeight(.semibold)
-                        Text("\(abs(Int(trend)))% from last month")
-                    }
-                    .font(.subheadline)
-                    .foregroundStyle(trend > 0 ? Color(.systemRed) : Color(.systemGreen)) // Red for spending increase
-                } else {
-                    Text("No change from last month")
-                        .font(.subheadline)
+                let integral = Int(total)
+                let fractional = Int((total - Double(integral)) * 100)
+                
+                Text("\(integral.formatted())")
+                    .font(.system(size: 48, weight: .bold, design: .rounded))
+                    .foregroundStyle(.primary)
+                
+                if fractional > 0 {
+                    Text(".\(String(format: "%02d", fractional))")
+                        .font(.title2)
                         .foregroundStyle(.secondary)
                 }
             }
+            .contentTransition(.numericText(value: total))
+            
+            // Trend Badge
+            if trend != 0 {
+                HStack(spacing: 4) {
+                    Image(systemName: trend > 0 ? "arrow.up.right" : "arrow.down.right")
+                        .font(.caption.bold())
+                    Text("\(Int(abs(trend)))% vs last month")
+                        .font(.caption.bold())
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    Capsule()
+                        .fill(trend > 0 ? Color.red.opacity(0.15) : Color.green.opacity(0.15))
+                )
+                .foregroundStyle(trend > 0 ? Color.red : Color.green)
+            } else {
+                Text("No change from last month")
+                    .font(.caption)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .foregroundStyle(.secondary)
+            }
+            
+            // Splits
+            HStack(spacing: 24) {
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(Color.blue)
+                        .frame(width: 8, height: 8)
+                    Text("Regular: \(Int(regularSplit).formatted())")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(Color.orange)
+                        .frame(width: 8, height: 8)
+                    Text("One-off: \(Int(oneOffSplit).formatted())")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.top, 4)
         }
-        .padding(20)
+        .padding(.vertical, 32)
+        .padding(.horizontal, 20)
+        .frame(maxWidth: .infinity)
         .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
 }
 

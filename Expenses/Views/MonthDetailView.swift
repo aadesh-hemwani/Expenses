@@ -203,14 +203,24 @@ struct MonthDetailView: View {
                 .environmentObject(repository)
         }
         .task {
-            repository.fetchExpenses(forMonth: monthID) { fetchedExpenses in
-                self.expenses = fetchedExpenses
-                self.isLoading = false
+            loadExpenses()
+        }
+        .onChange(of: expenseToEdit) { _, newValue in
+            // When the edit sheet is dismissed, reload data to reflect changes
+            if newValue == nil {
+                loadExpenses()
             }
         }
     }
     
     // MARK: - Helpers
+    
+    private func loadExpenses() {
+        repository.fetchExpenses(forMonth: monthID) { fetchedExpenses in
+            self.expenses = fetchedExpenses
+            self.isLoading = false
+        }
+    }
     
     private func expensesForDay(_ date: Date) -> [Expense] {
         let calendar = Calendar.current

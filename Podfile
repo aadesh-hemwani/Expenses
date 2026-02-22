@@ -4,6 +4,7 @@ platform :ios, '16.0'
 target 'Expenses' do
   # Comment the next line if you don't want to use dynamic frameworks
   use_frameworks! :linkage => :static
+  inhibit_all_warnings!
 
   # Pods for Expenses
   pod 'Firebase/Auth'
@@ -13,6 +14,12 @@ target 'Expenses' do
 
   post_install do |installer|
     installer.pods_project.targets.each do |target|
+      target.build_phases.each do |phase|
+        if phase.respond_to?(:always_out_of_date)
+          phase.always_out_of_date = "1"
+        end
+      end
+      
       target.build_configurations.each do |config|
         config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
         
