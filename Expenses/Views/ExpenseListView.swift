@@ -16,6 +16,15 @@ struct ExpenseListView: View {
     
     // Computed property for total expenses of current month
     private var currentMonthTotal: Double {
+        if selectedFilter == nil {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM"
+            let monthID = formatter.string(from: Date())
+            if let stat = repository.allStats.first(where: { $0.id == monthID }) {
+                return stat.total
+            }
+        }
+        
         let currentMonthExpenses = filteredExpenses.filter {
             Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .month)
         }
@@ -30,12 +39,14 @@ struct ExpenseListView: View {
         formatter.maximumFractionDigits = 2
         
         let totalString = formatter.string(from: NSNumber(value: currentMonthTotal)) ?? "0.00"
-        let parts = totalString.split(separator: ".")
+        let separator = formatter.decimalSeparator ?? "."
+        let separatorChar = separator.first ?? "."
+        let parts = totalString.split(separator: separatorChar)
         
         if parts.count == 2 {
-            return (String(parts[0]), "." + String(parts[1]))
+            return (String(parts[0]), separator + String(parts[1]))
         } else {
-            return (totalString, ".00")
+            return (totalString, separator + "00")
         }
     }
     
@@ -145,7 +156,7 @@ struct ExpenseListView: View {
 
     @ViewBuilder
     private func headerView() -> some View {
-        let displayCornerRadius = UIScreen.main.value(forKey: "_displayCornerRadius") as? CGFloat ?? 0
+        let displayCornerRadius = (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.screen.value(forKey: "_displayCornerRadius") as? CGFloat ?? 0
         
         VStack(alignment: .center, spacing: 12) {
             Text(currentMonthYear)
@@ -207,9 +218,11 @@ struct AnimatableNumberModifier: ViewModifier, Animatable {
         formatter.maximumFractionDigits = 2
         
         let totalString = formatter.string(from: NSNumber(value: number)) ?? "0.00"
-        let parts = totalString.split(separator: ".")
+        let separator = formatter.decimalSeparator ?? "."
+        let separatorChar = separator.first ?? "."
+        let parts = totalString.split(separator: separatorChar)
         let whole = parts.count > 0 ? String(parts[0]) : "0"
-        let fraction = parts.count > 1 ? "." + String(parts[1]) : ".00"
+        let fraction = parts.count > 1 ? separator + String(parts[1]) : separator + "00"
         
         return HStack(alignment: .lastTextBaseline, spacing: 0) {
             Text(whole)

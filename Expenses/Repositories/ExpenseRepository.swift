@@ -42,7 +42,7 @@ class ExpenseRepository: ObservableObject {
     func fetchExpenses() {
         listenerRegistration = db.collection("users").document(userId).collection("expenses")
             .order(by: "date", descending: true)
-            .limit(to: 50)
+            .limit(to: 500)
             .addSnapshotListener { [weak self] (querySnapshot, error) in
                 guard let self = self else { return }
                 
